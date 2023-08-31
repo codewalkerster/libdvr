@@ -87,18 +87,17 @@ int dvr_segment_del_by_location(const char *location)
 
   DIR *dir; // pointer to directory
   struct dirent *entry; // pointer to file entry
-  char *ext; // pointer to file extension
-  char *loc_dname;
-  int loc_dname_len;
-  char *loc_fname;
-  int loc_fname_len;
-  char *path;
-  int path_size;
+  char *loc_dname = NULL;
+  int loc_dname_len = 0;
+  char *loc_fname = NULL;
+  int loc_fname_len = 0;
+  char *path = NULL;
+  int path_size = 0;
 
   /*get the dirname and filename*/
   loc_fname = strrchr(location, '/');// fine last slash
-  loc_fname_len = strlen(loc_fname);
   if (loc_fname) {// skip the slash
+    loc_fname_len = strlen(loc_fname);
     loc_fname += 1;
     loc_fname_len -= 1;
   }

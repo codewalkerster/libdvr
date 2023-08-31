@@ -11,24 +11,7 @@ extern "C" {
 #endif
 
 #include "dvr_types.h"
-
-/**\brief Segment handle*/
-typedef void* Segment_Handle_t;
-
-/**\brief Segment open mode*/
-typedef enum {
-  SEGMENT_MODE_READ,            /**< Segment open read mode*/
-  SEGMENT_MODE_WRITE,           /**< Segment open write mode*/
-  SEGMENT_MODE_MAX              /**< Segment invalid open mode*/
-} Segment_OpenMode_t;
-
-/**\brief Segment open parameters*/
-typedef struct Segment_OpenParams_s {
-  char                  location[DVR_MAX_LOCATION_SIZE];        /**< Segment file location*/
-  uint64_t              segment_id;                             /**< Segment index*/
-  Segment_OpenMode_t    mode;                                   /**< Segment open mode*/
-  DVR_Bool_t            force_sysclock;                         /**< If ture, force to use system clock as PVR index time source. If false, libdvr can determine index time source based on actual situation*/
-} Segment_OpenParams_t;
+#include "segment_ops.h"
 
 /**\brief Open a segment for a target giving some open parameters
  * \param[out] p_handle, Return the handle of the newly created segment

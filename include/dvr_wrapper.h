@@ -412,6 +412,17 @@ int dvr_wrapper_property_set(const char* prop_name, const char* prop_value);
  */
 int dvr_wrapper_property_get(const char* prop_name, char* prop_value, int length);
 
+/**
+ * Control the internal recording logic
+ * \param rec The record handle.
+ * \param cmd control command
+ * \param data control data
+ * \param size size of the control data
+ * \retval DVR_SUCCESS On success.
+ * \return Error code.
+ */
+int dvr_wrapper_ioctl_record(DVR_WrapperRecord_t rec, unsigned int cmd, void *data, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

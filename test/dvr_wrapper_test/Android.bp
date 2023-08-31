@@ -35,3 +35,36 @@ cc_binary {
       "vendor/amlogic/common/mediahal_sdk/include",
     ],
 }
+
+cc_binary {
+    name: "dvr_wrapper_test.dataout",
+    proprietary: true,
+    compile_multilib: "32",
+
+    arch: {
+        x86: {
+            enabled: false,
+        },
+        x86_64: {
+            enabled: false,
+        },
+    },
+
+    srcs: [
+        "dvr_wrapper_test.dataout.c"
+    ],
+
+    shared_libs: [
+        "libutils",
+        "libcutils",
+        "liblog",
+        "libdl",
+        "libc",
+        "libamdvr",
+    ],
+
+    include_dirs: [
+      "hardware/amlogic/media/amcodec/include",
+      "vendor/amlogic/common/mediahal_sdk/include",
+    ],
+}

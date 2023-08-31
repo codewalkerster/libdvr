@@ -37,6 +37,7 @@ typedef enum
 typedef enum {
   DVR_RECORD_FLAG_SCRAMBLED = (1 << 0),
   DVR_RECORD_FLAG_ACCURATE  = (1 << 1),
+  DVR_RECORD_FLAG_DATAOUT   = (1 << 2),
 } DVR_RecordFlag_t;
 
 /**\brief DVR crypto parity flag*/
@@ -238,6 +239,16 @@ int dvr_record_is_secure_mode(DVR_RecordHandle_t handle);
  * \return error code on failure
  */
 int dvr_record_discard_coming_data(DVR_RecordHandle_t handle, DVR_Bool_t discard);
+
+/**\brief control the recording logic
+ * \param[in] handle, DVR recording session handle
+ * \param[in] cmd, command
+ * \param[in/out] data, parameters
+ * \param[in/out] size, size of parameters
+ * \return DVR_SUCCESS on success
+ * \return error code on failure
+ */
+int dvr_record_ioctl(DVR_RecordHandle_t handle, unsigned int cmd, void *data, size_t size);
 
 #ifdef __cplusplus
 }

@@ -3163,3 +3163,25 @@ int dvr_wrapper_property_get(const char* prop_name, char* prop_value, int length
   return dvr_prop_read(prop_name,prop_value,length);
 }
 
+int dvr_wrapper_ioctl_record(DVR_WrapperRecord_t rec, unsigned int cmd, void *data, size_t size)
+{
+  DVR_WrapperCtx_t *ctx;
+  int error;
+
+  DVR_RETURN_IF_FALSE(rec);
+
+  ctx = ctx_getRecord((unsigned long)rec);
+  DVR_RETURN_IF_FALSE(ctx);
+
+  wrapper_mutex_lock(&ctx->wrapper_lock);
+  DVR_WRAPPER_INFO("libdvr_api, ioctl_record (sn:%ld) cmd:%#x data:%p", ctx->sn, cmd, data);
+  WRAPPER_RETURN_IF_FALSE_WITH_UNLOCK(ctx_valid(ctx), &ctx->wrapper_lock);
+
+  error = dvr_record_ioctl(ctx->record.recorder, cmd, data, size);
+
+  DVR_WRAPPER_INFO("record(sn:%ld) ioctl_record = (%d)\n", ctx->sn, error);
+  wrapper_mutex_unlock(&ctx->wrapper_lock);
+
+  return error;
+
+}
