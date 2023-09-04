@@ -606,15 +606,14 @@ static void *wrapper_task(void *arg)
 
   prctl(PR_SET_NAME,"DvrWrapper");
 
-  pthread_mutex_lock(&thread_ctx->lock);
-
   while (thread_ctx->running) {
-    {
-      int ret;
+    int ret;
 
-      evt = (thread_ctx->type == W_REC)? ctx_getRecordEvent() : ctx_getPlaybackEvent();
-      if (!evt)
-        ret = wrapper_threadWait(thread_ctx);
+    evt = (thread_ctx->type == W_REC)? ctx_getRecordEvent() : ctx_getPlaybackEvent();
+    if (!evt) {
+      pthread_mutex_lock(&thread_ctx->lock);
+      ret = wrapper_threadWait(thread_ctx);
+      pthread_mutex_unlock(&thread_ctx->lock);
     }
 
     while (evt) {
@@ -636,11 +635,10 @@ static void *wrapper_task(void *arg)
         if (ctx_valid(ctx)) {
           /*double check after lock*/
           if (evt->sn == ctx->sn) {
-            pthread_mutex_unlock(&thread_ctx->lock);
             process_handleEvents(evt, ctx);
-            pthread_mutex_lock(&thread_ctx->lock);
           }
         }
+
         wrapper_mutex_unlock(&ctx->wrapper_lock);
       }
 
@@ -651,7 +649,6 @@ processed:
     }
   }
 
-  pthread_mutex_unlock(&thread_ctx->lock);
   DVR_WRAPPER_DEBUG("end name(%s) running(%d) type(%d) end...\n", thread_ctx->name, thread_ctx->running, thread_ctx->type);
   return NULL;
 }
@@ -669,7 +666,7 @@ static inline int ctx_addPlaybackEvent(DVR_WrapperEventCtx_t *evt)
 {
   pthread_mutex_lock(&WRAPPER_THREAD_PLAYBACK->lock);
   if (ctx_addEvent(&playback_evt_list, &playback_evt_list_lock, evt) == 0)
-      wrapper_threadSignalForType(evt->type);
+    wrapper_threadSignalForType(evt->type);
   pthread_mutex_unlock(&WRAPPER_THREAD_PLAYBACK->lock);
   return 0;
 }
