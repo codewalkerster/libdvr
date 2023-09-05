@@ -290,6 +290,7 @@ int inject_file_and_rec_open(char *inject_name,int vpid, int apid, char *record_
 
 	init_signal_handler();
 	AM_FileEcho("/sys/class/graphics/fb0/blank","1");
+	AM_FileEcho("/sys/class/stb/demux_reset_all_flag","1");
 
 	AM_AV_InjectPara_t av_para;
 	AM_AV_OpenPara_t av_open_para;
