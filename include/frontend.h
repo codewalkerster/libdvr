@@ -771,7 +771,6 @@ struct tuner_status_s {
     };
 };
 
-
 struct atv_status_s {
     unsigned char atv_lock;/*notlocked:0,locked 1*/
     v4l2_std_id      std;
