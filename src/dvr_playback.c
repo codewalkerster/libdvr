@@ -63,6 +63,7 @@ static int _dvr_playback_sent_transition_ok(DVR_PlaybackHandle_t handle, DVR_Boo
 static uint32_t dvr_playback_calculate_last_valid_segment(
   DVR_PlaybackHandle_t handle, uint64_t *segmentid, uint32_t *pos);
 static int get_effective_tsplayer_delay_time(DVR_Playback_t* playback, int *time);
+static int _dvr_get_play_cur_time(DVR_PlaybackHandle_t handle, uint64_t *id);
 
 
 
@@ -1368,6 +1369,26 @@ static void* _dvr_playback_thread(void *arg)
 
       dvr_mutex_unlock(&player->lock);
     }//read len 0 check end
+
+#ifdef FOR_SKYWORTH_FETCH_RDK
+    if (player->openParams.is_timeshift == DVR_TRUE && player->speed >= FF_SPEED)
+    {
+      DVR_PlaybackSegmentInfo_t *newest_segment
+        = list_last_entry(&player->segment_list, DVR_PlaybackSegmentInfo_t, head);
+      DVR_Bool_t cond1 = (player->cur_segment_id == newest_segment->segment_id);
+      int32_t time_end = _dvr_get_end_time((DVR_PlaybackHandle_t)player);
+      uint64_t cur_seg_id = 0;
+      int32_t time_cur = _dvr_get_play_cur_time((DVR_PlaybackHandle_t)player, &cur_seg_id);
+      DVR_Bool_t cond2 = (cur_seg_id == player->cur_segment_id && time_end - time_cur < 1000);
+      if (cond1 && cond2)
+      {
+        DVR_PlaybackSpeed_t normal_speed = {PLAYBACK_SPEED_X1,0};
+        DVR_PB_INFO("Change to normal speed due to FF reaching end");
+        dvr_playback_set_speed((DVR_PlaybackHandle_t)player,normal_speed);
+      }
+    }
+#endif
+
     if (player->noData >= check_no_data_time) {
       player->noData = 0;
       DVR_PB_INFO("playback send data event resume[%d]", player->noData);
