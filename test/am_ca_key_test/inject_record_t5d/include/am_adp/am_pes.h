@@ -54,7 +54,7 @@ typedef struct
 {
 	AM_PES_PacketCb_t packet;       /**< PES packet callback function*/
 	AM_Bool_t         payload_only; /**< Only read PES payload*/
-	void             *user_data;    /**< User dafined data*/
+	void             *user_data;    /**< User defined data*/
 	int				  afmt;			/**< audio fmt*/
 }AM_PES_Para_t;
 

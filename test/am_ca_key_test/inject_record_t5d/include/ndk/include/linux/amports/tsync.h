@@ -24,7 +24,7 @@
 
 #define TIME_UNIT90K    (90000)
 #define VIDEO_HOLD_THRESHOLD        (TIME_UNIT90K * 3)
-#define AV_DISCONTINUE_THREDHOLD    (TIME_UNIT90K * 30)
+#define AV_DISCONTINUE_THRESHOLD    (TIME_UNIT90K * 30)
 
 typedef enum {
     VIDEO_START,
@@ -70,7 +70,7 @@ extern void tsync_set_dec_reset(void);
 
 static inline u32 tsync_vpts_discontinuity_margin(void)
 {
-    return AV_DISCONTINUE_THREDHOLD;
+    return AV_DISCONTINUE_THRESHOLD;
 }
 extern int register_tync_func(enum tysnc_func_type_e ntype, void *pfunc);
 

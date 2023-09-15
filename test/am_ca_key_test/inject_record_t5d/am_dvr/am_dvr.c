@@ -33,7 +33,7 @@
 #include <am_debug.h>
 #include "am_dvr_internal.h"
 #include <am_dmx.h>
-#include <am_fend.h>
+//#include <am_fend.h>
 #include <am_time.h>
 #include <am_mem.h>
 
@@ -108,13 +108,13 @@ static AM_INLINE AM_ErrorCode_t dvr_get_dev(int dev_no, AM_DVR_Device_t **dev)
 }
 
 /**\brief 根据设备号取得设备结构并检查设备是否已经打开*/
-static AM_INLINE AM_ErrorCode_t dvr_get_openned_dev(int dev_no, AM_DVR_Device_t **dev)
+static AM_INLINE AM_ErrorCode_t dvr_get_opened_dev(int dev_no, AM_DVR_Device_t **dev)
 {
 	AM_TRY(dvr_get_dev(dev_no, dev));
 	
 	if(!(*dev)->open_cnt)
 	{
-		AM_DEBUG(1, "dvr device %d has not been openned", dev_no);
+		AM_DEBUG(1, "dvr device %d has not been opened", dev_no);
 		return AM_DVR_ERR_INVALID_DEV_NO;
 	}
 	
@@ -221,7 +221,7 @@ AM_ErrorCode_t AM_DVR_Open(int dev_no, const AM_DVR_OpenPara_t *para)
 	
 	if(dev->open_cnt)
 	{
-		AM_DEBUG(1, "dvr device %d has already been openned", dev_no);
+		AM_DEBUG(1, "dvr device %d has already been opened", dev_no);
 		dev->open_cnt++;
 		goto final;
 	}
@@ -301,7 +301,7 @@ AM_ErrorCode_t AM_DVR_SetBufferSize(int dev_no, int size)
 	AM_DVR_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	
-	AM_TRY(dvr_get_openned_dev(dev_no, &dev));
+	AM_TRY(dvr_get_opened_dev(dev_no, &dev));
 	
 	pthread_mutex_lock(&dev->lock);
 	
@@ -342,7 +342,7 @@ AM_ErrorCode_t AM_DVR_StartRecord(int dev_no, const AM_DVR_StartRecPara_t *para)
 	if (pid_cnt > AM_DVR_MAX_PID_COUNT)
 		pid_cnt = AM_DVR_MAX_PID_COUNT;
 		
-	AM_TRY(dvr_get_openned_dev(dev_no, &dev));
+	AM_TRY(dvr_get_opened_dev(dev_no, &dev));
 	
 	pthread_mutex_lock(&dev->lock);
 	if (dev->record)
@@ -380,7 +380,7 @@ AM_ErrorCode_t AM_DVR_StopRecord(int dev_no)
 	AM_DVR_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	
-	AM_TRY(dvr_get_openned_dev(dev_no, &dev));
+	AM_TRY(dvr_get_opened_dev(dev_no, &dev));
 	
 	pthread_mutex_lock(&dev->lock);
 	if (dev->record)
@@ -409,7 +409,7 @@ int AM_DVR_Read(int dev_no, uint8_t *buf, int size, int timeout_ms)
 	AM_ErrorCode_t ret;
 	int cnt = -1;
 
-	AM_TRY(dvr_get_openned_dev(dev_no, &dev));
+	AM_TRY(dvr_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 	if(!dev->drv->read)
@@ -444,7 +444,7 @@ AM_ErrorCode_t AM_DVR_SetSource(int dev_no, AM_DVR_Source_t src)
 	AM_DVR_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	
-	AM_TRY(dvr_get_openned_dev(dev_no, &dev));
+	AM_TRY(dvr_get_opened_dev(dev_no, &dev));
 	
 	pthread_mutex_lock(&dev->lock);
 	if(!dev->drv->set_source)

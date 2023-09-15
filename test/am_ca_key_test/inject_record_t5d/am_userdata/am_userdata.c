@@ -90,13 +90,13 @@ static AM_INLINE AM_ErrorCode_t userdata_get_dev(int dev_no, AM_USERDATA_Device_
 }
 
 /**\brief 根据设备号取得设备结构并检查设备是否已经打开*/
-static AM_INLINE AM_ErrorCode_t userdata_get_openned_dev(int dev_no, AM_USERDATA_Device_t **dev)
+static AM_INLINE AM_ErrorCode_t userdata_get_opened_dev(int dev_no, AM_USERDATA_Device_t **dev)
 {
 	AM_TRY(userdata_get_dev(dev_no, dev));
 	
 	if (!(*dev)->open_cnt)
 	{
-		AM_DEBUG(1, "userdata device %d has not been openned", dev_no);
+		AM_DEBUG(1, "userdata device %d has not been opened", dev_no);
 		return AM_USERDATA_ERR_INVALID_DEV_NO;
 	}
 	
@@ -352,7 +352,7 @@ AM_ErrorCode_t AM_USERDATA_Open(int dev_no, const AM_USERDATA_OpenPara_t *para)
 	
 	if (dev->open_cnt)
 	{
-		AM_DEBUG(1, "userdata device %d has already been openned", dev_no);
+		AM_DEBUG(1, "userdata device %d has already been opened", dev_no);
 		dev->open_cnt++;
 		goto final;
 	}
@@ -433,7 +433,7 @@ int AM_USERDATA_Read(int dev_no, uint8_t *buf, int size, int timeout_ms)
 	AM_ErrorCode_t ret;
 	int cnt = -1;
 
-	AM_TRY(userdata_get_openned_dev(dev_no, &dev));
+	AM_TRY(userdata_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 	ret = userdata_package_poll(dev, timeout_ms);
@@ -451,7 +451,7 @@ AM_ErrorCode_t AM_USERDATA_SetMode(int dev_no, int mode)
 	AM_USERDATA_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(userdata_get_openned_dev(dev_no, &dev));
+	AM_TRY(userdata_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -471,7 +471,7 @@ AM_ErrorCode_t AM_USERDATA_GetMode(int dev_no, int *mode)
 	if (!mode)
 		return AM_USERDATA_ERR_INVALID_ARG;
 
-	AM_TRY(userdata_get_openned_dev(dev_no, &dev));
+	AM_TRY(userdata_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 

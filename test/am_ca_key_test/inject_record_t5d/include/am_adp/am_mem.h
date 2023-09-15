@@ -18,7 +18,7 @@
 
 #include <string.h>
 #include "am_util.h"
-#include <memwatch.h>
+//#include <memwatch.h>
 
 #ifdef __cplusplus
 extern "C"

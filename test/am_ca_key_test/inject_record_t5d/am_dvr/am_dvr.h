@@ -44,7 +44,7 @@ enum AM_DVR_ErrorCode
 	AM_DVR_ERROR_BASE=AM_ERROR_BASE(AM_MOD_DVR),
 	AM_DVR_ERR_INVALID_ARG,			/**< Invalid argument*/
 	AM_DVR_ERR_INVALID_DEV_NO,		/**< Invalid decide number*/
-	AM_DVR_ERR_BUSY,                        /**< The device has already been openned*/
+	AM_DVR_ERR_BUSY,                        /**< The device has already been opened*/
 	AM_DVR_ERR_NOT_ALLOCATED,           /**< The device has not been allocated*/
 	AM_DVR_ERR_CANNOT_CREATE_THREAD,    /**< Cannot create a new thread*/
 	AM_DVR_ERR_CANNOT_OPEN_DEV,         /**< Cannot open the device*/
@@ -88,14 +88,14 @@ typedef enum
 /**\brief Open a DVR device
  * \param dev_no DVR device number
  * \param[in] para DVR device open parameters
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_Open(int dev_no, const AM_DVR_OpenPara_t *para);
 
 /**\brief Close an unused DVR device
  * \param dev_no DVR device number
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_Close(int dev_no);
@@ -103,7 +103,7 @@ extern AM_ErrorCode_t AM_DVR_Close(int dev_no);
 /**\brief Set the DVR device's ring queue buffer size.
  * \param dev_no DVR device number
  * \param size Ring queue buffer size
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_SetBufferSize(int dev_no, int size);
@@ -111,14 +111,14 @@ extern AM_ErrorCode_t AM_DVR_SetBufferSize(int dev_no, int size);
 /**\brief Start recording
  * \param dev_no DVR device number
  * \param [in] para Recording parameters
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_StartRecord(int dev_no, const AM_DVR_StartRecPara_t *para);
 
 /**\brief Stop recording
  * \param dev_no DVR device number
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_StopRecord(int dev_no);
@@ -126,7 +126,7 @@ extern AM_ErrorCode_t AM_DVR_StopRecord(int dev_no);
 /**\brief Set the DVR input source
  * \param dev_no DVR device number
  * \param	src DVR input source
- * \retval AM_SUCCESS On succes
+ * \retval AM_SUCCESS On success
  * \return Error code
  */
 extern AM_ErrorCode_t AM_DVR_SetSource(int dev_no, AM_DVR_Source_t src);

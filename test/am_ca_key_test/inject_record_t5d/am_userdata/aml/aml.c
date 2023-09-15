@@ -49,7 +49,7 @@
 #define AMSTREAM_IOC_UD_POC _IOR(AMSTREAM_IOC_MAGIC, 0x55, int)
 #define AMSTREAM_IOC_UD_FLUSH_USERDATA _IOR(AMSTREAM_IOC_MAGIC, 0x56, int)
 #define AMSTREAM_IOC_UD_BUF_READ _IOR(AMSTREAM_IOC_MAGIC, 0x57, int)
-#define AMSTREAM_IOC_UD_AVAIBLE_VDEC      _IOR(AMSTREAM_IOC_MAGIC, 0x5c, unsigned int)
+#define AMSTREAM_IOC_UD_AVAILABLE_VDEC      _IOR(AMSTREAM_IOC_MAGIC, 0x5c, unsigned int)
 
 /****************************************************************************
  * Type definitions
@@ -82,7 +82,7 @@ typedef enum {
 
 struct userdata_meta_info_t {
 	uint32_t poc_number;
-	/************ flags bit defination ***********
+	/************ flags bit definition ***********
 	bit 0:		//used for mpeg2
 		1, group start
 		0, not group start
@@ -125,7 +125,7 @@ struct userdata_meta_info_t {
 	uint32_t flags;
 	uint32_t vpts;			/*video frame pts*/
 	/******************************************
-	0: pts is invalid, please use duration to calcuate
+	0: pts is invalid, please use duration to calculate
 	1: pts is valid
 	******************************************/
 	uint32_t vpts_valid;
@@ -887,11 +887,11 @@ static void* aml_userdata_thread (void *arg)
 		//For multi-instances support
 		vdec_ids = 0;
 
-		if (-1 == ioctl(fd, AMSTREAM_IOC_UD_AVAIBLE_VDEC, &vdec_ids)) {
-			AM_DEBUG(AM_DEBUG_LEVEL, "get avaible vdec failed");
+		if (-1 == ioctl(fd, AMSTREAM_IOC_UD_AVAILABLE_VDEC, &vdec_ids)) {
+			AM_DEBUG(AM_DEBUG_LEVEL, "get AVAILABLE vdec failed");
 			continue;
 		} else {
-			AM_DEBUG(AM_DEBUG_LEVEL, "get avaible vdec OK: 0x%x\n", vdec_ids);
+			AM_DEBUG(AM_DEBUG_LEVEL, "get AVAILABLE vdec OK: 0x%x\n", vdec_ids);
 		}
 
 		read_vdec_id = ffs(vdec_ids) - 1;

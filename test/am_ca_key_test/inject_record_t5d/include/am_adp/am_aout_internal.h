@@ -55,7 +55,7 @@ struct AM_AOUT_Device
 	pthread_mutex_t         lock;      /**< 设备数据保护互斥体*/
 	int                     volume;    /**< 当前音量*/
 	AM_Bool_t               mute;      /**< 当前静音状态*/
-	AM_Bool_t               openned;   /**< 设备是否打开*/
+	AM_Bool_t               opened;   /**< 设备是否打开*/
 	AM_AOUT_OutputMode_t    mode;      /**< 当前输出模式*/
 	AM_AOUT_OpenPara_t      open_para; /**< 开启参数*/
 	float                   pre_gain;  /**< 当前预增益*/

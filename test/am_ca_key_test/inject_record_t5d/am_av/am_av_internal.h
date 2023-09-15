@@ -267,7 +267,7 @@ struct AM_AV_Device
 	AV_InjectPlayer_t inject_player; /**< 数据注入播放器*/
 	AV_TimeshiftPlayer_t timeshift_player;	/**< Timeshift 播放器*/
 	pthread_mutex_t  lock;           /**< 设备资源保护互斥体*/
-	AM_Bool_t        openned;        /**< 设备是否已经打开*/
+	AM_Bool_t        opened;        /**< 设备是否已经打开*/
 	AV_PlayMode_t    mode;           /**< 当前播放模式*/
 	int              video_x;        /**< 当前视频窗口左上角X坐标*/
 	int              video_y;        /**< 当前视频窗口左上角Y坐标*/

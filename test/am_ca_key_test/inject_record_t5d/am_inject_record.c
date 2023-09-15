@@ -300,11 +300,11 @@ int inject_file_and_rec_open(char *inject_name,int vpid, int apid, char *record_
 	av_para.vid_id  = pids[0];
 	av_para.aud_id  = pids[1];
 
-	AM_DEBUG(1, "Openning DMX%d...", 0);
+	AM_DEBUG(1, "opening DMX%d...", 0);
 	memset(&para, 0, sizeof(para));
 	AM_TRY(AM_DMX_Open(DMX_DEV_NO, &para));
 	AM_DMX_SetSource(DMX_DEV_NO, AM_DMX_SRC_HIU);
-	AM_DEBUG(1, "Openning DVR%d...", 0);
+	AM_DEBUG(1, "opening DVR%d...", 0);
 	memset(&dpara, 0, sizeof(dpara));
 	AM_TRY(AM_DVR_Open(DVR_DEV_NO, &dpara));
 

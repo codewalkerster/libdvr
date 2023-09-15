@@ -16,7 +16,7 @@
 /**\file
  * \brief Demux module
  *
- * Basic data strucutres definition in "linux/dvb/dmx.h"
+ * Basic data structures definition in "linux/dvb/dmx.h"
  *
  * \author Gong Ke <ke.gong@amlogic.com>
  * \date 2010-05-21: create the document
@@ -49,7 +49,7 @@ enum AM_DMX_ErrorCode
 	AM_DMX_ERROR_BASE=AM_ERROR_BASE(AM_MOD_DMX),
 	AM_DMX_ERR_INVALID_DEV_NO,          /**< Invalid device number*/
 	AM_DMX_ERR_INVALID_ID,              /**< Invalid filer handle*/
-	AM_DMX_ERR_BUSY,                    /**< The device has already been openned*/
+	AM_DMX_ERR_BUSY,                    /**< The device has already been opened*/
 	AM_DMX_ERR_NOT_ALLOCATED,           /**< The device has not been allocated*/
 	AM_DMX_ERR_CANNOT_CREATE_THREAD,    /**< Cannot create new thread*/
 	AM_DMX_ERR_CANNOT_OPEN_DEV,         /**< Cannot open device*/

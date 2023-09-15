@@ -510,7 +510,7 @@ struct userdata_poc_info_t {
 
 struct userdata_meta_info_t {
 	uint32_t poc_number;
-	/************ flags bit defination ***********/
+	/************ flags bit definition ***********/
 	/*
 	 * bit 0:		//used for mpeg2
 	 *	1, group start
@@ -549,7 +549,7 @@ struct userdata_meta_info_t {
 	uint32_t flags;
 	uint32_t vpts;			/*video frame pts*/
 	/*
-	 * 0: pts is invalid, please use duration to calcuate
+	 * 0: pts is invalid, please use duration to calculate
 	 * 1: pts is valid
 	 */
 	uint32_t vpts_valid;
@@ -831,7 +831,7 @@ enum FRAME_FORMAT {
 };
 
 struct av_info_t {
-	/*auido info*/
+	/*audio info*/
 	int sample_rate;
 	int channels;
 	int aformat_type;

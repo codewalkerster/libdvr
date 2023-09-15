@@ -337,7 +337,7 @@ static AM_TFile_Sub_t *aml_timeshift_new_subfile(AM_TFile_t tfile)
 	}
 	else
 	{
-		AM_DEBUG(1, "openning %s\n", fname);
+		AM_DEBUG(1, "opening %s\n", fname);
 		sub_file->wfd = open(fname, flags, 0666);
 		sub_file->rfd = open(fname, O_RDONLY, 0666);
 	}
@@ -1128,7 +1128,7 @@ write_done:
 		} else {
 			tfile->wtotal += size;
 			if ((now - tfile->wlast) >= 3000) {
-				/*Calcaulate the rate*/
+				/*calculate the rate*/
 				tfile->rate = (tfile->wtotal*1000)/(now - tfile->wlast);
 				AM_DEBUG(1, "[tfile] got rate:%dBps", tfile->rate);
 				if (tfile->rate) {

@@ -61,7 +61,7 @@ typedef struct
 	int  foo;
 } AM_DSC_OpenPara_t;
 
-/**\brief Work enviorment, tee/kernel */
+/**\brief Work environment, tee/kernel */
 typedef enum _work_mode_e{
 	DSC_MODE_NORMAL,
 	DSC_MODE_SEC,
@@ -74,7 +74,7 @@ typedef enum _key_parity{
 	DSC_KEY_EVEN
 }AM_DSC_KeyParity_e;
 
-/**\brief Video encrypt algoritm */
+/**\brief Video encrypt algorithm */
 typedef enum {
 	CW_ALGO_AES = 0,
 	CW_ALGO_DVBCSA = 1,

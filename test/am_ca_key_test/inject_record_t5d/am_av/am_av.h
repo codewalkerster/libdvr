@@ -67,7 +67,7 @@ enum AM_AV_ErrorCode
 {
 	AM_AV_ERROR_BASE=AM_ERROR_BASE(AM_MOD_AV),
 	AM_AV_ERR_INVALID_DEV_NO,          /**< Invalid decoder device number*/
-	AM_AV_ERR_BUSY,                    /**< The device has already been openned*/
+	AM_AV_ERR_BUSY,                    /**< The device has already been opened*/
 	AM_AV_ERR_ILLEGAL_OP,              /**< Illegal operation*/
 	AM_AV_ERR_INVAL_ARG,               /**< Invalid argument*/
 	AM_AV_ERR_NOT_ALLOCATED,           /**< The device has not been allocated*/
@@ -131,8 +131,8 @@ typedef enum
 {
 	AM_AV_MP_STATE_UNKNOWN = 0,        /**< Unknown*/
 	AM_AV_MP_STATE_INITING,            /**< Initializing*/
-	AM_AV_MP_STATE_NORMALERROR,        /**< Error occured*/
-	AM_AV_MP_STATE_FATALERROR,         /**< Fatal error occured*/
+	AM_AV_MP_STATE_NORMALERROR,        /**< Error occurred*/
+	AM_AV_MP_STATE_FATALERROR,         /**< Fatal error occurred*/
 	AM_AV_MP_STATE_PARSERED,           /**< The file's header has been parsed*/
 	AM_AV_MP_STATE_STARTED,            /**< Start playing*/
 	AM_AV_MP_STATE_PLAYING,            /**< Playing*/
@@ -204,7 +204,7 @@ typedef enum {
  *
  * detail definition in "linux/amlogic/amports/aformat.h"
  */
-typedef aformat_t AM_AV_AFormat_t;
+typedef enum aformat_e AM_AV_AFormat_t;
 #endif
 
 #if 0
@@ -228,7 +228,7 @@ typedef enum
  *
  * detail definition in "linux/amlogic/amports/vformat.h"
  */
-typedef vformat_t AM_AV_VFormat_t;
+typedef enum vformat_e AM_AV_VFormat_t;
 #endif
 
 /**\brief AV stream package format*/
@@ -251,7 +251,7 @@ typedef enum
 /**\brief Video aspect ratio match mode*/
 typedef enum
 {
-	AM_AV_VIDEO_ASPECT_MATCH_IGNORE,     /**< Ignoring orignal aspect ratio*/
+	AM_AV_VIDEO_ASPECT_MATCH_IGNORE,     /**< Ignoring original aspect ratio*/
 	AM_AV_VIDEO_ASPECT_MATCH_LETTER_BOX, /**< Letter box match mode*/
 	AM_AV_VIDEO_ASPECT_MATCH_PAN_SCAN,   /**< Pan scan match mode*/
 	AM_AV_VIDEO_ASPECT_MATCH_COMBINED    /**< Combined letter box/pan scan match mode*/
@@ -347,16 +347,16 @@ typedef enum
 typedef enum
 {
 	AM_AV_JPEG_OPT_THUMBNAIL_ONLY     = 1, /**< Decode in thumbnail only mode*/
-	AM_AV_JPEG_OPT_THUMBNAIL_PREFERED = 2, /**< Decode in thumbnail prefered mode*/
+	AM_AV_JPEG_OPT_THUMBNAIL_PREFERRED = 2, /**< Decode in thumbnail PREFERRED mode*/
 	AM_AV_JPEG_OPT_FULLRANGE          = 4  /**< Normal*/
 } AM_AV_JPEGOption_t;
 
 /**\brief Image surface parameters (used in JPEG decoder)*/
 typedef struct
 {
-	int    width;                 /**< Image width, <=0 means use orignal size*/
-	int    height;                /**< Image height, <=0 means use orignal size*/
-	AM_AV_JPEGAngle_t  angle;     /**< JPEG image ratation parameter*/
+	int    width;                 /**< Image width, <=0 means use original size*/
+	int    height;                /**< Image height, <=0 means use original size*/
+	AM_AV_JPEGAngle_t  angle;     /**< JPEG image rotation parameter*/
 	AM_AV_JPEGOption_t option;    /**< JPEG decoder options*/
 } AM_AV_SurfacePara_t;
 
@@ -446,7 +446,7 @@ typedef struct
 	{
 		int pid; /**< Audio PID*/
 		int fmt; /**< Audio format*/
-		char lang[4]; /**< Lanuguage descripton*/
+		char lang[4]; /**< Language description*/
 	}audios[8]; /**< Audio information array*/
 
 	int sub_cnt; /**< Subtitle number*/
@@ -761,7 +761,7 @@ extern AM_ErrorCode_t AM_AV_StartAudioESData(int dev_no, AM_AV_AFormat_t format,
  */
 extern AM_ErrorCode_t AM_AV_StopAudioES(int dev_no);
 
-/**\brief Enable/diable decoder's DRM mode
+/**\brief Enable/disable decoder's DRM mode
  * \param dev_no AV decoder device number
  * \param[in] enable enable or disable DRM mode
  * \retval AM_SUCCESS On success

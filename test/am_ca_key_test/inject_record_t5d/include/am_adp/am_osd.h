@@ -39,7 +39,7 @@ enum AM_OSD_ErrorCode
 	AM_OSD_ERR_NO_MEM,                   /**< 内存不足*/
 	AM_OSD_ERR_BUSY,                     /**< 设备已经打开*/
 	AM_OSD_ERR_INVALID_DEV_NO,           /**< 无效的设备号*/
-	AM_OSD_ERR_NOT_OPENNED,              /**< 设备还没有打开*/
+	AM_OSD_ERR_NOT_OPENED,              /**< 设备还没有打开*/
 	AM_OSD_ERR_CANNOT_CREATE_THREAD,     /**< 无法创建线程*/
 	AM_OSD_ERR_NOT_SUPPORTED,            /**< 设备不支持此功能*/
 	AM_OSD_ERR_CANNOT_OPEN,              /**< 无法打开设备*/

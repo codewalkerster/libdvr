@@ -40,7 +40,7 @@ enum AM_AOUT_ErrorCode
 {
 	AM_AOUT_ERROR_BASE=AM_ERROR_BASE(AM_MOD_AOUT),
 	AM_AOUT_ERR_INVALID_DEV_NO,          /**< Invalid audio output device number */
-	AM_AOUT_ERR_BUSY,                    /**< The device has already been openned */
+	AM_AOUT_ERR_BUSY,                    /**< The device has already been opened */
 	AM_AOUT_ERR_ILLEGAL_OP,              /**< Illegal operation */
 	AM_AOUT_ERR_INVAL_ARG,               /**< Invalid argument */
 	AM_AOUT_ERR_NOT_ALLOCATED,           /**< The device has not been allocated */

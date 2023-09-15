@@ -77,13 +77,13 @@ static AM_INLINE AM_ErrorCode_t av_get_dev(int dev_no, AM_AV_Device_t **dev)
 }
 
 /**\brief 根据设备号取得设备结构并检查设备是否已经打开*/
-static AM_INLINE AM_ErrorCode_t av_get_openned_dev(int dev_no, AM_AV_Device_t **dev)
+static AM_INLINE AM_ErrorCode_t av_get_opened_dev(int dev_no, AM_AV_Device_t **dev)
 {
 	AM_TRY(av_get_dev(dev_no, dev));
 
-	if (!(*dev)->openned)
+	if (!(*dev)->opened)
 	{
-		AM_DEBUG(1, "AV device %d has not been openned", dev_no);
+		AM_DEBUG(1, "AV device %d has not been opened", dev_no);
 		return AM_AV_ERR_INVALID_DEV_NO;
 	}
 
@@ -426,16 +426,16 @@ AM_ErrorCode_t AM_AV_Open(int dev_no, const AM_AV_OpenPara_t *para)
 
 	pthread_mutex_lock(&am_gAdpLock);
 
-	if (dev->openned)
+	if (dev->opened)
 	{
-		AM_DEBUG(1, "AV device %d has already been openned", dev_no);
+		AM_DEBUG(1, "AV device %d has already been opened", dev_no);
 		ret = AM_AV_ERR_BUSY;
 		goto final;
 	}
 
 	dev->dev_no  = dev_no;
 	pthread_mutex_init(&dev->lock, NULL);
-	dev->openned = AM_TRUE;
+	dev->opened = AM_TRUE;
 	dev->mode    = 0;
 	dev->video_x = 0;
 	dev->video_y = 0;
@@ -488,7 +488,7 @@ AM_ErrorCode_t AM_AV_Close(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&am_gAdpLock);
 
@@ -504,7 +504,7 @@ AM_ErrorCode_t AM_AV_Close(int dev_no)
 	/*释放资源*/
 	pthread_mutex_destroy(&dev->lock);
 
-	dev->openned = AM_FALSE;
+	dev->opened = AM_FALSE;
 
 	pthread_mutex_unlock(&am_gAdpLock);
 
@@ -523,7 +523,7 @@ AM_ErrorCode_t AM_AV_SetTSSource(int dev_no, AM_AV_TSSource_t src)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -550,7 +550,7 @@ AM_ErrorCode_t AM_AV_setFEStatus(int dev_no,int value)
 {
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 	if (dev->drv->set_fe_status) {
 		ret = dev->drv->set_fe_status(dev,value);
 	}
@@ -574,7 +574,7 @@ AM_ErrorCode_t AM_AV_StartTSWithPCR(int dev_no, uint16_t vpid, uint16_t apid, ui
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_TSPlayPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -621,7 +621,7 @@ AM_ErrorCode_t AM_AV_StopTS(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -649,7 +649,7 @@ AM_ErrorCode_t AM_AV_StartFile(int dev_no, const char *fname, AM_Bool_t loop, in
 
 	assert(fname);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -691,7 +691,7 @@ AM_ErrorCode_t AM_AV_AddFile(int dev_no, const char *fname)
 
 	assert(fname);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -727,7 +727,7 @@ AM_ErrorCode_t AM_AV_StartCurrFile(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -765,7 +765,7 @@ AM_ErrorCode_t AM_AV_StopFile(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -787,7 +787,7 @@ AM_ErrorCode_t AM_AV_PauseFile(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -824,7 +824,7 @@ AM_ErrorCode_t AM_AV_ResumeFile(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -861,7 +861,7 @@ AM_ErrorCode_t AM_AV_PauseInject(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -898,7 +898,7 @@ AM_ErrorCode_t AM_AV_ResumeInject(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -938,7 +938,7 @@ AM_ErrorCode_t AM_AV_SeekFile(int dev_no, int pos, AM_Bool_t start)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_FileSeekPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -981,7 +981,7 @@ AM_ErrorCode_t AM_AV_FastForwardFile(int dev_no, int speed)
 		return AM_AV_ERR_INVAL_ARG;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1028,7 +1028,7 @@ AM_ErrorCode_t AM_AV_FastBackwardFile(int dev_no, int speed)
 		return AM_AV_ERR_INVAL_ARG;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1071,7 +1071,7 @@ AM_ErrorCode_t AM_AV_GetCurrFileInfo(int dev_no, AM_AV_FileInfo_t *info)
 
 	assert(info);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1108,7 +1108,7 @@ AM_ErrorCode_t AM_AV_GetPlayStatus(int dev_no, AM_AV_PlayStatus_t *status)
 
 	assert(status);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1151,7 +1151,7 @@ AM_ErrorCode_t AM_AV_StartInject(int dev_no, const AM_AV_InjectPara_t *para)
 
 	assert(para);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1182,7 +1182,7 @@ AM_ErrorCode_t AM_AV_SetDRMMode(int dev_no, AM_AV_DrmMode_t drm_mode)
 
 	//assert(para);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1211,7 +1211,7 @@ AM_ErrorCode_t AM_AV_InjectData(int dev_no, AM_AV_InjectType_t type, uint8_t *da
 
 	assert(data && size);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1243,7 +1243,7 @@ AM_ErrorCode_t AM_AV_StopInject(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1274,7 +1274,7 @@ AM_ErrorCode_t AM_AV_GetJPEGInfo(int dev_no, const char *fname, AM_AV_JPEGInfo_t
 
 	assert(fname && info);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	fd = open(fname, O_RDONLY);
 	if (fd == -1)
@@ -1339,7 +1339,7 @@ AM_ErrorCode_t AM_AV_GetJPEGDataInfo(int dev_no, const uint8_t *data, int len, A
 
 	assert(data && info);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	para.data  = data;
 	para.len   = len;
@@ -1395,7 +1395,7 @@ AM_ErrorCode_t AM_AV_DecodeJPEG(int dev_no, const char *fname, const AM_AV_Surfa
 		s_para.option = 0;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	fd = open(fname, O_RDONLY);
 	if (fd == -1)
@@ -1477,7 +1477,7 @@ AM_ErrorCode_t AM_AV_DacodeJPEGData(int dev_no, const uint8_t *data, int len, co
 		s_para.option = 0;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	d_para.data  = data;
 	d_para.len   = len;
@@ -1525,7 +1525,7 @@ AM_ErrorCode_t AM_AV_StartVideoES(int dev_no, AM_AV_VFormat_t format, const char
 
 	assert(fname);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	fd = open(fname, O_RDONLY);
 	if (fd == -1)
@@ -1590,7 +1590,7 @@ AM_ErrorCode_t AM_AV_StartVideoESData(int dev_no, AM_AV_VFormat_t format, const 
 
 	assert(data);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	para.data  = data;
 	para.len   = len;
@@ -1635,7 +1635,7 @@ AM_ErrorCode_t AM_AV_StartAudioES(int dev_no, AM_AV_AFormat_t format, const char
 
 	assert(fname);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	fd = open(fname, O_RDONLY);
 	if (fd == -1)
@@ -1701,7 +1701,7 @@ AM_ErrorCode_t AM_AV_StartAudioESData(int dev_no, AM_AV_AFormat_t format, const 
 
 	assert(data);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	para.data  = data;
 	para.len   = len;
@@ -1736,7 +1736,7 @@ AM_ErrorCode_t AM_AV_StopVideoES(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1758,7 +1758,7 @@ AM_ErrorCode_t AM_AV_StopAudioES(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1785,7 +1785,7 @@ AM_ErrorCode_t AM_AV_SetVideoWindow(int dev_no, int x, int y, int w, int h)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_VideoWindow_t win;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	win.x = x;
 	win.y = y;
@@ -1840,7 +1840,7 @@ AM_ErrorCode_t AM_AV_SetVideoCropping(int dev_no, int Voffset0, int Hoffset0, in
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_VideoWindow_t win;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	win.x = Voffset0;
 	win.y = Hoffset0;
@@ -1888,7 +1888,7 @@ AM_ErrorCode_t AM_AV_GetVideoWindow(int dev_no, int *x, int *y, int *w, int *h)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1918,7 +1918,7 @@ AM_ErrorCode_t AM_AV_SetVideoContrast(int dev_no, int val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	val = AM_MAX(val, AM_AV_VIDEO_CONTRAST_MIN);
 	val = AM_MIN(val, AM_AV_VIDEO_CONTRAST_MAX);
@@ -1956,7 +1956,7 @@ AM_ErrorCode_t AM_AV_GetVideoContrast(int dev_no, int *val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -1980,7 +1980,7 @@ AM_ErrorCode_t AM_AV_SetVideoSaturation(int dev_no, int val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	val = AM_MAX(val, AM_AV_VIDEO_SATURATION_MIN);
 	val = AM_MIN(val, AM_AV_VIDEO_SATURATION_MAX);
@@ -2018,7 +2018,7 @@ AM_ErrorCode_t AM_AV_GetVideoSaturation(int dev_no, int *val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2042,7 +2042,7 @@ AM_ErrorCode_t AM_AV_SetVideoBrightness(int dev_no, int val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	val = AM_MAX(val, AM_AV_VIDEO_BRIGHTNESS_MIN);
 	val = AM_MIN(val, AM_AV_VIDEO_BRIGHTNESS_MAX);
@@ -2080,7 +2080,7 @@ AM_ErrorCode_t AM_AV_GetVideoBrightness(int dev_no, int *val)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2103,7 +2103,7 @@ AM_ErrorCode_t AM_AV_EnableVideo(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2137,7 +2137,7 @@ AM_ErrorCode_t AM_AV_DisableVideo(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2172,7 +2172,7 @@ AM_ErrorCode_t AM_AV_SetVideoAspectRatio(int dev_no, AM_AV_VideoAspectRatio_t ra
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2204,7 +2204,7 @@ AM_ErrorCode_t AM_AV_GetVideoAspectRatio(int dev_no, AM_AV_VideoAspectRatio_t *r
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2228,7 +2228,7 @@ AM_ErrorCode_t AM_AV_SetVideoAspectMatchMode(int dev_no, AM_AV_VideoAspectMatchM
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2259,7 +2259,7 @@ AM_ErrorCode_t AM_AV_GetVideoAspectMatchMode(int dev_no, AM_AV_VideoAspectMatchM
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2282,7 +2282,7 @@ AM_ErrorCode_t AM_AV_EnableVideoBlackout(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2312,7 +2312,7 @@ AM_ErrorCode_t AM_AV_DisableVideoBlackout(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2343,7 +2343,7 @@ AM_ErrorCode_t AM_AV_SetVideoDisplayMode(int dev_no, AM_AV_VideoDisplayMode_t mo
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2378,7 +2378,7 @@ AM_ErrorCode_t AM_AV_GetVideoDisplayMode(int dev_no, AM_AV_VideoDisplayMode_t *m
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2401,7 +2401,7 @@ AM_ErrorCode_t AM_AV_ClearVideoBuffer(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2437,7 +2437,7 @@ AM_ErrorCode_t AM_AV_GetVideoFrame(int dev_no, const AM_AV_SurfacePara_t *para, 
 		para = &real_para;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2464,7 +2464,7 @@ AM_ErrorCode_t AM_AV_GetVideoStatus(int dev_no,AM_AV_VideoStatus_t *status)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2490,7 +2490,7 @@ AM_ErrorCode_t AM_AV_GetAudioStatus(int dev_no,AM_AV_AudioStatus_t *status)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2518,7 +2518,7 @@ AM_ErrorCode_t AM_AV_StartTimeshift(int dev_no, const AM_AV_TimeshiftPara_t *par
 
 	assert(para);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2551,7 +2551,7 @@ AM_ErrorCode_t AM_AV_TimeshiftFillData(int dev_no, uint8_t *data, int size)
 
 	assert(data && size);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2583,7 +2583,7 @@ AM_ErrorCode_t AM_AV_StopTimeshift(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2605,7 +2605,7 @@ AM_ErrorCode_t AM_AV_PlayTimeshift(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2642,7 +2642,7 @@ AM_ErrorCode_t AM_AV_PauseTimeshift(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2679,7 +2679,7 @@ AM_ErrorCode_t AM_AV_ResumeTimeshift(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2719,7 +2719,7 @@ AM_ErrorCode_t AM_AV_SeekTimeshift(int dev_no, int pos, AM_Bool_t start)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_FileSeekPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2762,7 +2762,7 @@ AM_ErrorCode_t AM_AV_FastForwardTimeshift(int dev_no, int speed)
 		return AM_AV_ERR_INVAL_ARG;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2806,7 +2806,7 @@ AM_ErrorCode_t AM_AV_FastBackwardTimeshift(int dev_no, int speed)
 		return AM_AV_ERR_INVAL_ARG;
 	}
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2846,7 +2846,7 @@ AM_ErrorCode_t AM_AV_SwitchTimeshiftAudio(int dev_no, int apid, int afmt)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_TSPlayPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2884,7 +2884,7 @@ AM_ErrorCode_t AM_AV_GetTimeshiftInfo(int dev_no, AM_AV_TimeshiftInfo_t *info)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_TSPlayPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2913,7 +2913,7 @@ AM_ErrorCode_t AM_AV_GetTimeshiftTFile(int dev_no, AM_TFile_t *tfile)
 	AM_ErrorCode_t ret = AM_SUCCESS;
 	AV_TSPlayPara_t para;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2948,7 +2948,7 @@ AM_AV_SetVPathPara(int dev_no, AM_AV_FreeScalePara_t fs, AM_AV_DeinterlacePara_t
 	UNUSED(dev_no);
 	UNUSED(di);
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2973,7 +2973,7 @@ AM_ErrorCode_t AM_AV_SwitchTSAudio(int dev_no, uint16_t apid, AM_AV_AFormat_t af
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -2990,7 +2990,7 @@ AM_ErrorCode_t AM_AV_ResetAudioDecoder(int dev_no)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3015,7 +3015,7 @@ AM_ErrorCode_t AM_AV_SetVdecErrorRecoveryMode(int dev_no, uint8_t error_recovery
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3034,7 +3034,7 @@ AM_ErrorCode_t AM_AV_SetInjectAudio(int dev_no, int aid, AM_AV_AFormat_t afmt)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3051,7 +3051,7 @@ AM_ErrorCode_t AM_AV_SetInjectSubtitle(int dev_no, int sid, int stype)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3068,7 +3068,7 @@ AM_ErrorCode_t AM_AV_SetAudioAd(int dev_no, int enable, uint16_t apid, AM_AV_AFo
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3086,7 +3086,7 @@ AM_ErrorCode_t AM_AV_SetAudioCallback(int dev_no,AM_AV_Audio_CB_t cb,void *user_
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3104,7 +3104,7 @@ AM_ErrorCode_t AM_AV_GetVideoPts(int dev_no, uint64_t *pts)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3123,7 +3123,7 @@ AM_ErrorCode_t AM_AV_GetAudioPts(int dev_no, uint64_t *pts)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 
@@ -3142,7 +3142,7 @@ AM_ErrorCode_t AM_AV_SetCryptOps(int dev_no, AM_Crypt_Ops_t *ops)
 	AM_AV_Device_t *dev;
 	AM_ErrorCode_t ret = AM_SUCCESS;
 
-	AM_TRY(av_get_openned_dev(dev_no, &dev));
+	AM_TRY(av_get_opened_dev(dev_no, &dev));
 
 	pthread_mutex_lock(&dev->lock);
 

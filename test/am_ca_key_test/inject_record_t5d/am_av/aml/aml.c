@@ -326,7 +326,7 @@ static AM_ErrorCode_t set_dec_control(AM_Bool_t enable);
 #endif
 
 /*
- * As not inlude "adec-external-ctrl.h", so we need declare
+ * As not include "adec-external-ctrl.h", so we need declare
  * audio_decode_set_volume. Otherwise it will lost the value of the second
  * param, AKA volume.
  */
@@ -1072,7 +1072,7 @@ static void adec_start_decode_cb(int fd, int fmt, int has_video, void **padec)
 
 //	AM_AOUT_SetDriver(AOUT_DEV_NO, &adec_aout_drv_cb, NULL);
 
-	// just for compatile with native decoder.
+	// just for compatible with native decoder.
 	*padec = (void *)1;
 	adec_handle = (void *) 1;
 }
@@ -1646,7 +1646,7 @@ static int audio_hardware_ctrl( AM_AOUT_OutputMode_t mode)
         break;
 
     default:
-        AM_DEBUG(1,"Unknow mode %d!", mode);
+        AM_DEBUG(1,"unknown mode %d!", mode);
         break;
 
     };
@@ -2250,7 +2250,7 @@ static AM_ErrorCode_t aml_start_inject(AM_AV_Device_t *dev, AV_InjectData_t *inj
 			AM_DEBUG(1, "set AMSTREAM_IOC_SYSINFO");
 			return AM_AV_ERR_SYS;
 		}
-		/*configure double wirte mode*/
+		/*configure double write mode*/
 		memset(vdec_info, 0, sizeof(vdec_info));
 		if (para->vid_fmt == VFORMAT_HEVC) {
 			sprintf(vdec_info, "hevc_double_write_mode:%d", double_write_mode);
@@ -2376,10 +2376,10 @@ static void aml_destroy_inject_data(AV_InjectData_t *inj)
 }
 void aml_term_signal_handler(int signo)
 {
-	AM_DEBUG(1,"PVR_DEBUG recive a signal:%d", signo);
+	AM_DEBUG(1,"PVR_DEBUG receive a signal:%d", signo);
 	if (signo == SIGTERM)
 	{
-		AM_DEBUG(1,"PVR_DEBUG recive SIGTERM");
+		AM_DEBUG(1,"PVR_DEBUG receive SIGTERM");
 		if (m_tshift == NULL)
 			return;
 		AM_TFile_t tfile = m_tshift->file;
@@ -2683,7 +2683,7 @@ static AM_ErrorCode_t aml_start_timeshift(AV_TimeshiftData_t *tshift, AV_TimeShi
 	/*patch dec control*/
 	set_dec_control(has_video);
 
-	AM_DEBUG(1, "Openning demux%d",para->dmx_id);
+	AM_DEBUG(1, "opening demux%d",para->dmx_id);
 	snprintf(buf, sizeof(buf), "/dev/dvb0.demux%d", para->dmx_id);
 	tshift->dmxfd = open(buf, O_RDWR);
 	if (tshift->dmxfd == -1)
@@ -2709,7 +2709,7 @@ static AM_ErrorCode_t aml_start_timeshift(AV_TimeshiftData_t *tshift, AV_TimeShi
 
 	if (check_vfmt_support_sched(tp->vfmt) == AM_FALSE)
 	{
-		AM_DEBUG(1, "Openning mpts");
+		AM_DEBUG(1, "opening mpts");
 		ts->fd = open(STREAM_TS_FILE, O_RDWR);
 		if (ts->fd == -1)
 		{
@@ -2719,7 +2719,7 @@ static AM_ErrorCode_t aml_start_timeshift(AV_TimeshiftData_t *tshift, AV_TimeShi
 	}
 	else
 	{
-		AM_DEBUG(1, "Openning mpts_sched");
+		AM_DEBUG(1, "opening mpts_sched");
 		ts->fd = open(STREAM_TS_SCHED_FILE, O_RDWR);
 		if (ts->fd == -1)
 		{
@@ -2729,7 +2729,7 @@ static AM_ErrorCode_t aml_start_timeshift(AV_TimeshiftData_t *tshift, AV_TimeShi
 	}
 
 	if (has_video) {
-		AM_DEBUG(1, "Openning video");
+		AM_DEBUG(1, "opening video");
 		ts->vid_fd = open(AMVIDEO_FILE, O_RDWR);
 		if (ts->vid_fd == -1)
 		{
@@ -2965,7 +2965,7 @@ static void aml_stop_av_monitor(AM_AV_Device_t *dev, AV_Monitor_t *mon)
 	if (mon->av_thread_running) {
 		mon->av_thread_running = AM_FALSE;
 		pthread_cond_broadcast(&gAVMonCond);
-		AM_DEBUG(1, "[avmon] stop av monitor ---broardcast end join start\r\n");
+		AM_DEBUG(1, "[avmon] stop av monitor ---broadcast end join start\r\n");
 		pthread_join(mon->av_mon_thread, NULL);
 		AM_DEBUG(1, "[avmon] stop av monitor ---join end\r\n");
 	}
@@ -3187,7 +3187,7 @@ static int aml_timeshift_resume_av(AV_TimeshiftData_t *tshift)
 static int aml_timeshift_do_cmd_start(AV_TimeshiftData_t *tshift)
 {
 	loff_t offset;
-	int seeked = 0;
+	int sought = 0;
 
         AV_TimeshiftState_t last_stat =  tshift->state;
 	tshift->inject_size = 64*1024;
@@ -3197,7 +3197,7 @@ static int aml_timeshift_do_cmd_start(AV_TimeshiftData_t *tshift)
 	if (tshift->para.para.mode == AM_AV_TIMESHIFT_MODE_TIMESHIFTING) {
 		if (AM_TFile_TimeGetReadNow(tshift->file) != tshift->current) {
 			AM_TFile_TimeSeek(tshift->file, tshift->current);
-			seeked = 1;
+			sought = 1;
 		}
 	} else {//rec play
 		loff_t off = AM_TFile_Tell(tshift->file);
@@ -3206,13 +3206,13 @@ static int aml_timeshift_do_cmd_start(AV_TimeshiftData_t *tshift)
 		if (current != tshift->current) {
 			offset = (loff_t)tshift->current / 1000 * (loff_t)tshift->rate;
 			AM_TFile_Seek(tshift->file, offset);
-			seeked = 1;
+			sought = 1;
 		}
 	}
 	if (VALID_VIDEO(tshift->tp.vpid, tshift->tp.vfmt))
 		ioctl(tshift->ts.vid_fd, AMSTREAM_IOC_TRICKMODE, TRICKMODE_NONE);
 
-	if (seeked || last_stat == AV_TIMESHIFT_STAT_FFFB)
+	if (sought || last_stat == AV_TIMESHIFT_STAT_FFFB)
 		am_timeshift_reset(tshift, 2, AM_TRUE);
 
 	//if (tshift->last_cmd == AV_PLAY_FF || tshift->last_cmd == AV_PLAY_FB)
@@ -4070,14 +4070,14 @@ static AM_ErrorCode_t aml_timeshift_fill_data(AM_AV_Device_t *dev, uint8_t *data
 				if ((now - tshift->rtime) >= 3000)
 				{
 					tshift->rtotal += size;
-					/*Calcaulate the rate*/
+					/*calculate the rate*/
 					tshift->rate = (tshift->rtotal*1000)/(now - tshift->rtime);
 					if (tshift->rate && tshift->file->loop)
 					{
 						/*Calculate the file size*/
 						tshift->file->size = (loff_t)tshift->rate * (loff_t)(tshift->duration / 1000);
 						pthread_cond_signal(&tshift->cond);
-						AM_DEBUG(1, "zzz @@@wirte record data %lld bytes in %d ms,so the rate is assumed to %d Bps, ring file size %lld",
+						AM_DEBUG(1, "zzz @@@write record data %lld bytes in %d ms,so the rate is assumed to %d Bps, ring file size %lld",
 							tshift->rtotal, now - tshift->rtime, tshift->rate, tshift->file->size);
 					}
 					else
@@ -4945,7 +4945,7 @@ static AM_ErrorCode_t aml_start_ts_mode(AM_AV_Device_t *dev, AV_TSPlayPara_t *tp
 			AM_DEBUG(1, "set AMSTREAM_IOC_SYSINFO");
 			return AM_AV_ERR_SYS;
 		}
-		/*configure double wirte mode*/
+		/*configure double write mode*/
 		memset(vdec_info, 0, sizeof(vdec_info));
 		if (tp->vfmt == VFORMAT_HEVC) {
 			sprintf(vdec_info, "hevc_double_write_mode:%d", double_write_mode);
@@ -6794,7 +6794,7 @@ static AM_ErrorCode_t aml_inject(AM_AV_Device_t *dev, AM_AV_InjectType_t type, u
 
 	if (fd == -1)
 	{
-		AM_DEBUG(1, "device is not openned");
+		AM_DEBUG(1, "device is not opened");
 		return AM_AV_ERR_NOT_ALLOCATED;
 	}
 
@@ -7153,31 +7153,31 @@ static AM_ErrorCode_t aml_set_ppmgr_3dcmd(int cmd)
     {
     case AM_AV_PPMGR_MODE3D_DISABLE:
         arg = MODE_3D_DISABLE;
-        AM_DEBUG(1,"3D fucntion (0: Disalbe!)\n");
+        AM_DEBUG(1,"3D function (0: Disable!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_AUTO:
         arg = MODE_3D_ENABLE|MODE_AUTO;
-        AM_DEBUG(1,"3D fucntion (1: Auto!)\n");
+        AM_DEBUG(1,"3D function (1: Auto!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_2D_TO_3D:
         arg = MODE_3D_ENABLE|MODE_2D_TO_3D;
-        AM_DEBUG(1,"3D fucntion (2: 2D->3D!)\n");
+        AM_DEBUG(1,"3D function (2: 2D->3D!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_LR:
         arg = MODE_3D_ENABLE|MODE_LR;
-        AM_DEBUG(1,"3D fucntion (3: L/R!)\n");
+        AM_DEBUG(1,"3D function (3: L/R!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_BT:
         arg = MODE_3D_ENABLE|MODE_BT;
-        AM_DEBUG(1,"3D fucntion (4: B/T!)\n");
+        AM_DEBUG(1,"3D function (4: B/T!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_OFF_LR_SWITCH:
         arg = MODE_3D_ENABLE|MODE_LR;
-        AM_DEBUG(1,"3D fucntion (5: LR SWITCH OFF!)\n");
+        AM_DEBUG(1,"3D function (5: LR SWITCH OFF!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_ON_LR_SWITCH:
         arg = MODE_3D_ENABLE|MODE_LR_SWITCH;
-        AM_DEBUG(1,"3D fucntion (6: LR SWITCH!)\n");
+        AM_DEBUG(1,"3D function (6: LR SWITCH!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_FIELD_DEPTH:
         arg = MODE_3D_ENABLE|MODE_FIELD_DEPTH;
@@ -7185,7 +7185,7 @@ static AM_ErrorCode_t aml_set_ppmgr_3dcmd(int cmd)
         break;
     case AM_AV_PPMGR_MODE3D_OFF_3D_TO_2D:
         arg = MODE_3D_ENABLE|MODE_LR;
-        AM_DEBUG(1,"3D fucntion (8: 3D_TO_2D_TURN_OFF!)\n");
+        AM_DEBUG(1,"3D function (8: 3D_TO_2D_TURN_OFF!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_L_3D_TO_2D:
         arg = MODE_3D_ENABLE|MODE_3D_TO_2D_L;
@@ -7201,11 +7201,11 @@ static AM_ErrorCode_t aml_set_ppmgr_3dcmd(int cmd)
         break;
     case AM_AV_PPMGR_MODE3D_ON_LR_SWITCH_BT:
         arg = MODE_3D_ENABLE|MODE_LR_SWITCH|BT_FORMAT_INDICATOR;
-        AM_DEBUG(1,"3D fucntion (12: BT SWITCH!)\n");
+        AM_DEBUG(1,"3D function (12: BT SWITCH!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_OFF_3D_TO_2D_BT:
         arg = MODE_3D_ENABLE|MODE_BT;
-        AM_DEBUG(1,"3D fucntion (13: 3D_TO_2D_TURN_OFF_BT!)\n");
+        AM_DEBUG(1,"3D function (13: 3D_TO_2D_TURN_OFF_BT!)\n");
         break;
     case AM_AV_PPMGR_MODE3D_L_3D_TO_2D_BT:
         arg = MODE_3D_ENABLE|MODE_3D_TO_2D_L|BT_FORMAT_INDICATOR;
@@ -7216,7 +7216,7 @@ static AM_ErrorCode_t aml_set_ppmgr_3dcmd(int cmd)
         AM_DEBUG(1,"3D function (15: 3D TO 2D R BT!)\n");
         break;
     default:
-    	AM_DEBUG(1, "Unkown set 3D cmd %d", cmd);
+        AM_DEBUG(1, "unknown set 3D cmd %d", cmd);
     	arg = -1;
     	break;
     }

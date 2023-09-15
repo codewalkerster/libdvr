@@ -81,7 +81,7 @@ extern AM_ErrorCode_t AM_EVT_Subscribe(long dev_no, int event_type, AM_EVT_Callb
  */
 extern AM_ErrorCode_t AM_EVT_Unsubscribe(long dev_no, int event_type, AM_EVT_Callback_t cb, void *data);
 
-/**\brief Signal an event occured
+/**\brief Signal an event occurred
  * \param dev_no The device number generate the event
  * \param event_type Event type
  * \param[in] param Parameter of the event
@@ -89,7 +89,7 @@ extern AM_ErrorCode_t AM_EVT_Unsubscribe(long dev_no, int event_type, AM_EVT_Cal
 extern AM_ErrorCode_t AM_EVT_Signal(long dev_no, int event_type, void *param);
 
 extern AM_ErrorCode_t AM_EVT_Init();
-extern AM_ErrorCode_t AM_EVT_Destory();
+extern AM_ErrorCode_t AM_EVT_Destroy();
 
 #ifdef __cplusplus
 }
