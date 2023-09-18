@@ -311,7 +311,7 @@ static uint32_t _dvr_time_getClock(void)
 {
   struct timespec ts;
   uint32_t ms;
-  clock_gettime(CLOCK_REALTIME, &ts);
+  clock_gettime(CLOCK_MONOTONIC, &ts);
   ms = (uint32_t)(ts.tv_sec*1000+ts.tv_nsec/1000000);
   return ms;
 }
