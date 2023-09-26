@@ -1386,6 +1386,11 @@ static void* _dvr_playback_thread(void *arg)
         DVR_PlaybackSpeed_t normal_speed = {PLAYBACK_SPEED_X1,0};
         DVR_PB_INFO("Change to normal speed due to FF reaching end");
         dvr_playback_set_speed((DVR_PlaybackHandle_t)player,normal_speed);
+
+        DVR_Play_Notify_t notify;
+        memset(&notify, 0 , sizeof(DVR_Play_Notify_t));
+        notify.event = DVR_PLAYBACK_EVENT_TIMESHIFT_FF_REACHED_END;
+        _dvr_playback_sent_event((DVR_PlaybackHandle_t)player, notify.event, &notify, 0);
       }
     }
 #endif
@@ -3672,17 +3677,26 @@ static int _dvr_playback_fffb(DVR_PlaybackHandle_t handle) {
       DVR_PlaybackSpeed_t normal_speed = {PLAYBACK_SPEED_X1,0};
       DVR_PB_INFO("Change to normal speed due to FB reaching beginning");
       dvr_playback_set_speed((DVR_PlaybackHandle_t)player,normal_speed);
+
+      {
+        DVR_Play_Notify_t notify;
+        memset(&notify, 0 , sizeof(DVR_Play_Notify_t));
+        notify.event = DVR_PLAYBACK_EVENT_TIMESHIFT_FR_REACHED_BEGIN;
+        _dvr_playback_sent_event((DVR_PlaybackHandle_t)player, notify.event, &notify, 0);
+      }
 #else
+      DVR_PB_INFO("Change to pause due to FB reaching beginning");
       dvr_playback_pause(handle, DVR_FALSE);
 #endif
-      //send event here and pause
-      DVR_Play_Notify_t notify;
-      memset(&notify, 0 , sizeof(DVR_Play_Notify_t));
-      notify.event = DVR_PLAYBACK_EVENT_REACHED_BEGIN;
-      //get play statue not here
-      _dvr_playback_sent_event(handle, DVR_PLAYBACK_EVENT_REACHED_BEGIN, &notify, DVR_TRUE);
-      DVR_PB_INFO("*******************send begin event  speed [%f] cur [%d]", player->speed, _dvr_get_cur_time(handle));
-      //change to pause
+      {
+        //send event here and pause
+        DVR_Play_Notify_t notify;
+        memset(&notify, 0 , sizeof(DVR_Play_Notify_t));
+        notify.event = DVR_PLAYBACK_EVENT_REACHED_BEGIN;
+        //get play statue not here
+        _dvr_playback_sent_event(handle, DVR_PLAYBACK_EVENT_REACHED_BEGIN, &notify, DVR_TRUE);
+        DVR_PB_INFO("*******************send begin event  speed [%f] cur [%d]", player->speed, _dvr_get_cur_time(handle));
+      }
       return DVR_SUCCESS;
     }
     _dvr_playback_sent_transition_ok(handle, DVR_FALSE);

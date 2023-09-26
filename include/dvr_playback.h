@@ -188,7 +188,9 @@ typedef enum {
   DVR_PLAYBACK_EVENT_NOTIFY_PLAYTIME,               /**< notify play cur segment time ms*/
   DVR_PLAYBACK_EVENT_FIRST_FRAME,                   /**< first frame*/
   DVR_PLAYBACK_EVENT_NODATA,                        /**< no data*/
-  DVR_PLAYBACK_EVENT_DATARESUME                     /**< data resume*/
+  DVR_PLAYBACK_EVENT_DATARESUME,                     /**< data resume*/
+  DVR_PLAYBACK_EVENT_TIMESHIFT_FR_REACHED_BEGIN,
+  DVR_PLAYBACK_EVENT_TIMESHIFT_FF_REACHED_END,
 } DVR_PlaybackEvent_t;
 
 /**\brief DVR playback event notify function*/

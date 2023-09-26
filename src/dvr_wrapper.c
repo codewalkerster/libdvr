@@ -3069,6 +3069,8 @@ static int process_handlePlaybackEvent(DVR_WrapperEventCtx_t *evt, DVR_WrapperCt
     case DVR_PLAYBACK_EVENT_REACHED_BEGIN:
     case DVR_PLAYBACK_EVENT_NODATA:
     case DVR_PLAYBACK_EVENT_DATARESUME:
+    case DVR_PLAYBACK_EVENT_TIMESHIFT_FR_REACHED_BEGIN:
+    case DVR_PLAYBACK_EVENT_TIMESHIFT_FF_REACHED_END:
     {
       DVR_WrapperPlaybackStatus_t status;
 
