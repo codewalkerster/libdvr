@@ -2290,6 +2290,7 @@ int dvr_wrapper_seek_playback (DVR_WrapperPlayback_t playback, uint32_t time_off
       time_offset = expired;
     }
   }
+  ctx->playback.reach_end = DVR_FALSE;
 
   const uint32_t obsolete_time = (uint32_t)ctx->playback.obsolete.time;
   DVR_WrapperPlaybackSegmentInfo_t *p_seg_first = ctx->segments.c_prev;
