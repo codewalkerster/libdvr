@@ -33,26 +33,88 @@
 #define INF(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
 #define ERR(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
 
+enum {
+  INDEX_PUSI      = 0x01,
+  INDEX_IFRAME    = 0x02,
+  INDEX_PTS       = 0x04
+};
+
+#define has_pusi(_m_)    ((_m_) & INDEX_PUSI)
+#define has_iframe(_m_) ((_m_) & INDEX_IFRAME)
+#define has_pts(_m_)    ((_m_) & INDEX_PTS)
+#define MAX_CACHE_SIZE  (2*1024*1024)
+
 typedef struct
 {
-  uint8_t *ptr;
+  uint8_t *base_ptr;
+  uint8_t *last_pusi_ptr;
+  uint64_t last_pusi_offset;
+  uint64_t cnt;
   uint64_t last_pts;
-  uint64_t last_offset;
+  uint32_t flags;
+  uint8_t *cache_data;
+  uint64_t cache_len;
   FILE *dump_file;
 } ts_indexer_ctl;
 
 static ts_indexer_ctl gControl;
 
+int send_data()
+{
+  ts_indexer_ctl *ctl = &gControl;
+
+  if (!has_pusi(ctl->flags)) {
+    ERR("no PUSI, should not send\n");
+    return -1;
+  }
+  //send the cache data
+  if (ctl->dump_file) {
+    INF("send %#lx bytes, PUSI: %d, IFRAME: %d, PTS: %d\n",
+        ctl->cache_len,
+        has_pusi(ctl->flags),
+        has_iframe(ctl->flags),
+        has_pts(ctl->flags));
+    fwrite(&ctl->cache_data[0], 1, ctl->cache_len, ctl->dump_file);
+  }
+
+  return 0;
+}
+
 static void ts_indexer_event_cb(TS_Indexer_t *ts_indexer, TS_Indexer_Event_t *event)
 {
-  int write_len;
+  static int cnt = 0;
+  int margin_len;
+  ts_indexer_ctl *ctl = &gControl;
 
   if (ts_indexer == NULL || event == NULL)
     return;
 
+  if (!has_iframe(ctl->flags) &&
+         !has_pts(ctl->flags) &&
+         !has_pusi(ctl->flags) &&
+         event->type != TS_INDEXER_EVENT_TYPE_START_INDICATOR) {
+    INF("wait the PUSI come %d...\n", event->type);
+    return;
+  }
+
+  if (ctl->last_pusi_offset <= 0) {
+    if (event->type == TS_INDEXER_EVENT_TYPE_START_INDICATOR) {
+      ctl->last_pusi_offset = ts_indexer->offset;
+      ctl->last_pusi_ptr = ctl->base_ptr + (ts_indexer->offset - ctl->cnt);
+      INF("PUSI %d\n", cnt++);
+      return;
+    } else {
+      ERR("unexpected event: %d\n", event->type);
+      return;
+    }
+  }
+
   switch (event->type) {
     case TS_INDEXER_EVENT_TYPE_MPEG2_I_FRAME:
-      #if 1
+    case TS_INDEXER_EVENT_TYPE_AVC_I_SLICE:
+    case TS_INDEXER_EVENT_TYPE_HEVC_IDR_W_RADL:
+      ctl->flags |= INDEX_IFRAME;
+      #if 0
       INF("pid: %#x ", event->pid);
       INF("TS_INDEXER_EVENT_TYPE_I_FRAME, offset: %lx, pts: %lx\n",
             event->offset, event->pts);
@@ -60,33 +122,46 @@ static void ts_indexer_event_cb(TS_Indexer_t *ts_indexer, TS_Indexer_Event_t *ev
       break;
 
     case TS_INDEXER_EVENT_TYPE_VIDEO_PTS:
-      #if 1
+      ctl->flags |= INDEX_PTS;
+      #if 0
       INF("PID: %#x ", event->pid);
       INF("TS_INDEXER_EVENT_TYPE_VIDEO_PTS, Offset: %lx, Lastoffset: %lx, Pts: %lx\n",
             event->offset, gControl.last_offset, event->pts);
-      write_len = ts_indexer->offset - gControl.last_offset;
-      if (gControl.dump_file) {
-        fwrite(gControl.ptr, 1, write_len, gControl.dump_file);
-        gControl.ptr += write_len;
-      }
       gControl.last_offset = ts_indexer->offset;
       #endif
       break;
 
     case TS_INDEXER_EVENT_TYPE_AUDIO_PTS:
-      #if 0
-      INF("PID: %#x ", event->pid);
-      INF("TS_INDEXER_EVENT_TYPE_AUDIO_PTS, Offset: %lx, Pts: %lx\n",
-            event->offset, event->pts);
-      #endif
       break;
 
-    //case TS_INDEXER_EVENT_TYPE_START_INDICATOR:
-    //case TS_INDEXER_EVENT_TYPE_DISCONTINUITY_INDICATOR:
+    case TS_INDEXER_EVENT_TYPE_START_INDICATOR:
+      /*
+       * it does means this is the first PUSI on current block if there're
+       * cache data
+       */
+      if (ctl->cache_len > 0) {
+        // the length from block head to the pusi position
+        margin_len = ts_indexer->offset - ctl->cnt;
+        memcpy(&ctl->cache_data[ctl->cache_len], ctl->base_ptr, margin_len);
+        ctl->cache_len += margin_len;
+        ctl->last_pusi_ptr = ctl->base_ptr + margin_len;
+      } else {
+        // the length between the last PUSI and current PUSI
+        margin_len = ts_indexer->offset - ctl->last_pusi_offset;
+        memcpy(&ctl->cache_data[0], ctl->last_pusi_ptr, margin_len);
+        ctl->cache_len = margin_len;
+        ctl->last_pusi_ptr += margin_len;
+      }
+
+      send_data();
+      ctl->flags = INDEX_PUSI;
+      ctl->last_pusi_offset = ts_indexer->offset;
+      ctl->cache_len = 0;
+      break;
+    case TS_INDEXER_EVENT_TYPE_DISCONTINUITY_INDICATOR:
     case TS_INDEXER_EVENT_TYPE_MPEG2_P_FRAME:
     case TS_INDEXER_EVENT_TYPE_MPEG2_B_FRAME:
     case TS_INDEXER_EVENT_TYPE_MPEG2_SEQUENCE:
-    case TS_INDEXER_EVENT_TYPE_AVC_I_SLICE:
     case TS_INDEXER_EVENT_TYPE_AVC_P_SLICE:
     case TS_INDEXER_EVENT_TYPE_AVC_B_SLICE:
     case TS_INDEXER_EVENT_TYPE_AVC_SI_SLICE:
@@ -95,10 +170,9 @@ static void ts_indexer_event_cb(TS_Indexer_t *ts_indexer, TS_Indexer_Event_t *ev
     case TS_INDEXER_EVENT_TYPE_HEVC_AUD:
     case TS_INDEXER_EVENT_TYPE_HEVC_BLA_W_LP:
     case TS_INDEXER_EVENT_TYPE_HEVC_BLA_W_RADL:
-    case TS_INDEXER_EVENT_TYPE_HEVC_IDR_W_RADL:
     case TS_INDEXER_EVENT_TYPE_HEVC_IDR_N_LP:
     case TS_INDEXER_EVENT_TYPE_HEVC_TRAIL_CRA:
-      INF("type: %d, offset: %#lx\n", event->type, event->offset);
+      //INF("type: %d, offset: %lx\n", event->type, event->offset);
       break;
 
     default:
@@ -128,6 +202,7 @@ int main(int argc, char **argv)
   int vfmt = -1;
   TS_Indexer_t ts_indexer;
   int block_size = 188*1024;
+  ts_indexer_ctl *ctl = &gControl;
 
   memset(&file[0], 0, sizeof(file));
   for (i = 1; i < argc; i++) {
@@ -173,31 +248,52 @@ int main(int argc, char **argv)
 
   size_t len = 0;
   INF("vpid: %#x, vfmt: %d, apid:%#x\n", vpid, vfmt, apid);
-  memset(&gControl, 0, sizeof(ts_indexer_ctl));
-  gControl.last_pts = -1;
-  gControl.last_offset = 0;
-  gControl.dump_file = fopen("./dump.ts", "wb+");
-  if (gControl.dump_file == NULL) {
+  memset(ctl, 0, sizeof(ts_indexer_ctl));
+  ctl->last_pts = -1;
+  ctl->last_pusi_offset = 0;
+  ctl->cache_data = malloc(MAX_CACHE_SIZE);
+  if (ctl->cache_data == NULL) {
+    ERR("malloc cache failed\n");
+    return -1;
+  }
+  ctl->dump_file = fopen("./dump.ts", "wb+");
+  if (ctl->dump_file == NULL) {
     ERR("open dump file failed\n");
     return -1;
   }
 
-  INF("ptr: %p ~ %p\n", &data[0], &data[0] + block_size);
   while (1) {
     len = fread(data, 1, block_size, f);
     if (len <= 0)
       break;
 
-    gControl.ptr = &data[0];
+    ctl->base_ptr = &data[0];
     ts_indexer_parse(&ts_indexer, data, len);
-    if (gControl.ptr - &data[0] < len) {
-      int left = len - (gControl.ptr - &data[0]);
-      fwrite(gControl.ptr, 1, left, gControl.dump_file);
-      gControl.last_offset += left;
+
+    int offset = ctl->cache_len;
+    /*
+     * cache the data from PUSI position to the end of the block if current
+     * block has PUSI.
+     * cache the whole block data if current block has no PUSI.
+     */
+
+    if (ctl->cache_len == 0 && ctl->last_pusi_ptr) {
+      int pusi_to_end_len = ((ctl->base_ptr + len) - ctl->last_pusi_ptr);
+      if (pusi_to_end_len > 0)
+        memcpy(&ctl->cache_data[offset], ctl->last_pusi_ptr, pusi_to_end_len);
+      ctl->cache_len += pusi_to_end_len;
+    } else {
+      memcpy(&ctl->cache_data[offset], ctl->base_ptr, len);
+      ctl->cache_len += len;
     }
+    ctl->cnt += len;
+    ctl->last_pusi_ptr = NULL;
   }
-  fflush(gControl.dump_file);
-  fclose(gControl.dump_file);
+  if (ctl->cache_data) {
+    free(ctl->cache_data);
+  }
+  fflush(ctl->dump_file);
+  fclose(ctl->dump_file);
 
   return 0;
 }
