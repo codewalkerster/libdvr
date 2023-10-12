@@ -490,7 +490,8 @@ static inline DVR_WrapperCtx_t *ctx_getPlayback(unsigned long sn)
 static int wrapper_requestThread(DVR_WrapperThreadCtx_t *ctx, void *(thread_fn)(void *))
 {
   pthread_mutex_lock(&ctx->lock);
-  if (ctx->running == 0) {
+  ctx->running++;
+  if (ctx->running == 1) {
     pthread_condattr_t attr = {0};
     pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
     pthread_cond_init(&ctx->cond, &attr);
@@ -499,7 +500,6 @@ static int wrapper_requestThread(DVR_WrapperThreadCtx_t *ctx, void *(thread_fn)(
     pthread_create(&ctx->thread, NULL, thread_fn, ctx);
     DVR_WRAPPER_INFO("wrapper thread(%s) started\n", ctx->name);
   }
-  ctx->running++;
   pthread_mutex_unlock(&ctx->lock);
   return 0;
 }
@@ -649,7 +649,7 @@ processed:
     }
   }
 
-  DVR_WRAPPER_DEBUG("end name(%s) running(%d) type(%d) end...\n", thread_ctx->name, thread_ctx->running, thread_ctx->type);
+  DVR_WRAPPER_DEBUG("wrapper thread(%s) exit, running(%d) type(%d)\n", thread_ctx->name, thread_ctx->running, thread_ctx->type);
   return NULL;
 }
 
