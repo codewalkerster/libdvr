@@ -2390,6 +2390,31 @@ int dvr_playback_update_segment_pids(DVR_PlaybackHandle_t handle, uint64_t segme
                 //stop audio
                 a_cmd = DVR_PLAYBACK_CMD_A_STOP;
             }
+
+            /*process the ad, if main audio exists, but no action*/
+            if (a_cmd == DVR_PLAYBACK_CMD_NONE && VALID_PID(p_pids->audio.pid)) {
+
+                if (VALID_PID(segment->pids.ad.pid)
+                  && VALID_PID(p_pids->ad.pid)
+                  && segment->pids.ad.pid != p_pids->ad.pid) {
+                  //changed
+                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
+                }
+                if (VALID_PID(segment->pids.ad.pid)
+                  && !VALID_PID(p_pids->ad.pid)
+                  && segment->pids.ad.pid != p_pids->ad.pid) {
+                  //to stop
+                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
+                }
+                if (!VALID_PID(segment->pids.ad.pid)
+                  && VALID_PID(p_pids->ad.pid)
+                  && segment->pids.ad.pid != p_pids->ad.pid) {
+                  //to start
+                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
+                }
+
+            }
+
             if (a_cmd == DVR_PLAYBACK_CMD_NONE
               && v_cmd == DVR_PLAYBACK_CMD_NONE) {
               //do nothing
