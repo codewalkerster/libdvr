@@ -2744,7 +2744,7 @@ static int wrapper_saveRecordStatistics(const char *location, DVR_WrapperRecordS
         p_status->info.pkts - p_status->info_obsolete.pkts);
     fputs(buf, fp);
     fflush(fp);
-    fsync(fileno(fp));
+    //fsync(fileno(fp));
     fclose(fp);
     return DVR_SUCCESS;
   }

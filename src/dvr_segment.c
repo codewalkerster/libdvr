@@ -337,7 +337,7 @@ int dvr_segment_link_op(const char *location, uint32_t nb_segments, uint64_t *p_
   }
 
   fflush(fp);
-  fsync(fileno(fp));
+  //fsync(fileno(fp));
   fclose(fp);
   return DVR_SUCCESS;
 }

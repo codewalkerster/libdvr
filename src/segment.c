@@ -258,8 +258,9 @@ ssize_t segment_write(Segment_Handle_t handle, void *buf, size_t count)
   DVR_RETURN_IF_FALSE(buf);
   DVR_RETURN_IF_FALSE(p_ctx->ts_fd != -1);
   len = write(p_ctx->ts_fd, buf, count);
-  if (p_ctx->time % TS_FILE_SYNC_TIME == 0)
-    fsync(p_ctx->ts_fd);
+  /*remove the fsync, use /proc to control the data writeback*/
+  //if (p_ctx->time % TS_FILE_SYNC_TIME == 0)
+  //  fsync(p_ctx->ts_fd);
   return len;
 }
 
@@ -307,7 +308,7 @@ int segment_update_pts_force(Segment_Handle_t handle, uint64_t pts, loff_t offse
     DVR_INFO("%s force pcr:%llu buf:%s", __func__, pts, buf);
     fputs(buf, p_ctx->index_fp);
     fflush(p_ctx->index_fp);
-    fsync(fileno(p_ctx->index_fp));
+    //fsync(fileno(p_ctx->index_fp));
     p_ctx->last_record_pts = pts;
   }
   p_ctx->last_pts = pts;
@@ -380,8 +381,8 @@ int segment_update_pts(Segment_Handle_t handle, uint64_t pts, loff_t offset)
     fflush(p_ctx->index_fp);
     p_ctx->time++;
     //flush idx file 3s
-    if ((p_ctx->time > 0 && p_ctx->time % IDX_FILE_SYNC_TIME == 0))
-      fsync(fileno(p_ctx->index_fp));
+    //if ((p_ctx->time > 0 && p_ctx->time % IDX_FILE_SYNC_TIME == 0))
+    //  fsync(fileno(p_ctx->index_fp));
     if (p_ctx->time > IDX_FILE_SYNC_TIME)
       p_ctx->time = 0;
     p_ctx->last_record_pts = pts;
@@ -702,7 +703,7 @@ int segment_store_info(Segment_Handle_t handle, Segment_StoreInfo_t *p_info)
   fputs(buf, p_ctx->dat_fp);
 
   fflush(p_ctx->dat_fp);
-  fsync(fileno(p_ctx->dat_fp));
+  //fsync(fileno(p_ctx->dat_fp));
   return DVR_SUCCESS;
 }
 
@@ -756,7 +757,7 @@ int segment_store_allInfo(Segment_Handle_t handle, Segment_StoreInfo_t *p_info)
   fputs(buf, p_ctx->all_dat_fp);
 
   fflush(p_ctx->all_dat_fp);
-  fsync(fileno(p_ctx->all_dat_fp));
+  //fsync(fileno(p_ctx->all_dat_fp));
   return DVR_SUCCESS;
 }
 
