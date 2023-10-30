@@ -39,7 +39,7 @@ extern "C"
 *****************************************************************************/
 
 /**Maximum PIDs can be recorded.*/
-#define DVR_MAX_RECORD_PIDS_COUNT 16
+#define DVR_MAX_RECORD_PIDS_COUNT 32
 /**Maximum path size.*/
 #define DVR_MAX_LOCATION_SIZE     512
 
