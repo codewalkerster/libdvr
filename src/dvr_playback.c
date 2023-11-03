@@ -2354,124 +2354,57 @@ int dvr_playback_update_segment_pids(DVR_PlaybackHandle_t handle, uint64_t segme
           //if state is pause, we need process at resume api. we only record change info
             int v_cmd = DVR_PLAYBACK_CMD_NONE;
             int a_cmd = DVR_PLAYBACK_CMD_NONE;
-            if (VALID_PID(segment->pids.video.pid)
-              && VALID_PID(p_pids->video.pid)
-              && segment->pids.video.pid != p_pids->video.pid) {
-              //restart video
-              v_cmd = DVR_PLAYBACK_CMD_V_RESTART;
-            }
-            if (!VALID_PID(segment->pids.video.pid)
-                && VALID_PID(p_pids->video.pid)
-                && segment->pids.video.pid != p_pids->video.pid) {
-                //start video
-                v_cmd = DVR_PLAYBACK_CMD_V_START;
-            }
-            if (VALID_PID(segment->pids.video.pid)
-                && !VALID_PID(p_pids->video.pid)
-                && segment->pids.video.pid != p_pids->video.pid) {
-                //stop video
-                v_cmd = DVR_PLAYBACK_CMD_V_STOP;
-            }
-            if (VALID_PID(segment->pids.audio.pid)
-              && VALID_PID(p_pids->audio.pid)
-              && segment->pids.audio.pid != p_pids->audio.pid) {
-              //restart audio
-              a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
-            }
-            if (!VALID_PID(segment->pids.audio.pid)
-                && VALID_PID(p_pids->audio.pid)
-                && segment->pids.audio.pid != p_pids->audio.pid) {
-                //start audio
-                a_cmd = DVR_PLAYBACK_CMD_A_START;
-            }
-            if (VALID_PID(segment->pids.audio.pid)
-                && !VALID_PID(p_pids->audio.pid)
-                && segment->pids.audio.pid != p_pids->audio.pid) {
-                //stop audio
-                a_cmd = DVR_PLAYBACK_CMD_A_STOP;
-            }
+
+            #define CHECK_IF_NEED_RESTART(_now, _next, _cmd, _v_cmd) \
+              if (VALID_PID(_now) && VALID_PID(_next) && (_now) != (_next)) \
+                (_cmd) = (_v_cmd);
+
+            #define CHECK_IF_NEED_STOP(_now, _next, _cmd, _v_cmd) \
+              if (VALID_PID(_now) && !VALID_PID(_next)) \
+                (_cmd) = (_v_cmd);
+
+            #define CHECK_IF_NEED_START(_now, _next, _cmd, _v_cmd) \
+              if (!VALID_PID(_now) && VALID_PID(_next)) \
+                (_cmd) = (_v_cmd);
+
+            CHECK_IF_NEED_RESTART(segment->pids.video.pid, p_pids->video.pid, v_cmd, DVR_PLAYBACK_CMD_V_RESTART);
+            CHECK_IF_NEED_STOP(segment->pids.video.pid, p_pids->video.pid, v_cmd, DVR_PLAYBACK_CMD_V_STOP);
+            CHECK_IF_NEED_START(segment->pids.video.pid, p_pids->video.pid, v_cmd, DVR_PLAYBACK_CMD_V_START);
+
+            CHECK_IF_NEED_RESTART(segment->pids.audio.pid, p_pids->audio.pid, a_cmd, DVR_PLAYBACK_CMD_A_RESTART);
+            CHECK_IF_NEED_STOP(segment->pids.audio.pid, p_pids->audio.pid, a_cmd, DVR_PLAYBACK_CMD_A_STOP);
+            CHECK_IF_NEED_START(segment->pids.audio.pid, p_pids->audio.pid, a_cmd, DVR_PLAYBACK_CMD_A_START);
 
             /*process the ad, if main audio exists, but no action*/
             if (a_cmd == DVR_PLAYBACK_CMD_NONE && VALID_PID(p_pids->audio.pid)) {
 
-                if (VALID_PID(segment->pids.ad.pid)
-                  && VALID_PID(p_pids->ad.pid)
-                  && segment->pids.ad.pid != p_pids->ad.pid) {
-                  //changed
-                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
-                }
-                if (VALID_PID(segment->pids.ad.pid)
-                  && !VALID_PID(p_pids->ad.pid)
-                  && segment->pids.ad.pid != p_pids->ad.pid) {
-                  //to stop
-                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
-                }
-                if (!VALID_PID(segment->pids.ad.pid)
-                  && VALID_PID(p_pids->ad.pid)
-                  && segment->pids.ad.pid != p_pids->ad.pid) {
-                  //to start
-                  a_cmd = DVR_PLAYBACK_CMD_A_RESTART;
-                }
+              CHECK_IF_NEED_RESTART(segment->pids.ad.pid, p_pids->ad.pid, a_cmd, DVR_PLAYBACK_CMD_A_RESTART);
+              CHECK_IF_NEED_STOP(segment->pids.ad.pid, p_pids->ad.pid, a_cmd, DVR_PLAYBACK_CMD_A_RESTART);
+              CHECK_IF_NEED_START(segment->pids.ad.pid, p_pids->ad.pid, a_cmd, DVR_PLAYBACK_CMD_A_RESTART);
 
             }
 
-            if (a_cmd == DVR_PLAYBACK_CMD_NONE
-              && v_cmd == DVR_PLAYBACK_CMD_NONE) {
-              //do nothing
-            } else if (a_cmd == DVR_PLAYBACK_CMD_NONE
-              || v_cmd == DVR_PLAYBACK_CMD_NONE) {
-              player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-              player->cmd.cur_cmd = a_cmd != DVR_PLAYBACK_CMD_NONE ? a_cmd : v_cmd;
-            } else if (a_cmd != DVR_PLAYBACK_CMD_NONE
-              && v_cmd != DVR_PLAYBACK_CMD_NONE) {
-              if (v_cmd == DVR_PLAYBACK_CMD_V_RESTART
-                && (a_cmd == DVR_PLAYBACK_CMD_A_RESTART)) {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_AV_RESTART;
-              }else if (v_cmd == DVR_PLAYBACK_CMD_V_RESTART
-                && a_cmd == DVR_PLAYBACK_CMD_A_START) {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_START_V_RESTART;
-              } else {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_STOP_V_RESTART;
-              }
+            DVR_PB_INFO("%s, v_cmd[%#x] a_cmd[%#x]", __func__, v_cmd, a_cmd);
 
-              if (v_cmd == DVR_PLAYBACK_CMD_V_START
-                && (a_cmd == DVR_PLAYBACK_CMD_A_RESTART)) {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_START_A_RESTART;
-              } else if (v_cmd == DVR_PLAYBACK_CMD_V_START
-                && a_cmd == DVR_PLAYBACK_CMD_A_START) {
-                //not occur this case
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_START;
-              } else {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_STOP_V_START;
-              }
-
-              if (v_cmd == DVR_PLAYBACK_CMD_V_STOP
-                && a_cmd == DVR_PLAYBACK_CMD_A_START) {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_STOP_A_START;
-              } else if (v_cmd == DVR_PLAYBACK_CMD_V_STOP
-                && a_cmd == DVR_PLAYBACK_CMD_A_RESTART) {
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_STOP_A_RESTART;
-              } else {
-                //not occur this case
-                player->cmd.last_cmd =DVR_PLAYBACK_CMD_PAUSE;
-                player->cmd.cur_cmd = DVR_PLAYBACK_CMD_STOP;
-              }
+            if (player->cmd.last_cmd == DVR_PLAYBACK_CMD_PAUSE
+              && player->cmd.cur_cmd != DVR_PLAYBACK_CMD_NONE) {
+              /*another cmd coming in pause mode, should check and merge with last cmd*/
+              player->cmd.cur_cmd |= a_cmd | v_cmd;
+            } else {
+              player->cmd.cur_cmd = a_cmd | v_cmd;
             }
+            player->cmd.last_cmd = DVR_PLAYBACK_CMD_PAUSE;
+
+            DVR_PB_INFO("%s, last_cmd[%#x] cur_cmd[%#x]", __func__, player->cmd.last_cmd, player->cmd.cur_cmd);
         }
+
         memcpy(&player->cur_segment.pids, p_pids, sizeof(DVR_PlaybackPids_t));
       }
       //save pids info
-      DVR_PB_INFO(":apid :%d %d", segment->pids.audio.pid, p_pids->audio.pid);
+      DVR_PB_INFO(":vpid :%d -> %d", segment->pids.video.pid, p_pids->video.pid);
+      DVR_PB_INFO(":apid :%d -> %d", segment->pids.audio.pid, p_pids->audio.pid);
+      DVR_PB_INFO(":adpid :%d -> %d", segment->pids.ad.pid, p_pids->ad.pid);
       memcpy(&segment->pids, p_pids, sizeof(DVR_PlaybackPids_t));
-      DVR_PB_INFO(":cp apid :%d %d", segment->pids.audio.pid, p_pids->audio.pid);
       break;
     }
   }
@@ -2760,71 +2693,45 @@ static int _dvr_cmd(DVR_PlaybackHandle_t handle, int cmd)
   memset(&audio_params, 0, sizeof(audio_params));
 
   _dvr_playback_get_playinfo(handle, segmentid, &video_params, &audio_params, &ad_params);
-  DVR_PB_INFO("unlock cmd: %d", cmd);
+  DVR_PB_INFO("unlock, _dvr_cmd: %#x", cmd);
   dvr_mutex_unlock(&player->lock);
 
-  switch (cmd) {
-    case DVR_PLAYBACK_CMD_AV_RESTART:
-      //av restart
-      DVR_PB_INFO("do_cmd av_restart");
-      _dvr_playback_replay((DVR_PlaybackHandle_t)player, DVR_FALSE);
-      break;
-    case DVR_PLAYBACK_CMD_V_RESTART:
+  if (DVR_PLAYBACK_CMD_IS_V_RESTART(cmd) && DVR_PLAYBACK_CMD_IS_A_RESTART(cmd)) {
+
+    DVR_PB_INFO("do_cmd av_restart");
+    _dvr_playback_replay((DVR_PlaybackHandle_t)player, DVR_FALSE);
+
+  } else if (cmd == DVR_PLAYBACK_CMD_FF || cmd == DVR_PLAYBACK_CMD_FB) {
+
+    _dvr_playback_fffb((DVR_PlaybackHandle_t)player);
+
+  } else if (cmd == DVR_PLAYBACK_CMD_START || cmd == DVR_PLAYBACK_CMD_STOP) {
+
+    //nop
+
+  } else {
+
+    if (DVR_PLAYBACK_CMD_IS_A_STOP(cmd)) {
+      DVR_PB_INFO("do_cmd a_stop");
+      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
+    }
+
+    if (DVR_PLAYBACK_CMD_IS_V_STOP(cmd)) {
+      DVR_PB_INFO("do_cmd v_stop");
       dvr_playback_video_stop((DVR_PlaybackHandle_t)player);
+    }
+
+    if (DVR_PLAYBACK_CMD_IS_V_START(cmd)) {
+      DVR_PB_INFO("do_cmd v_start");
       dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      break;
-    case DVR_PLAYBACK_CMD_V_START:
-      dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      break;
-    case DVR_PLAYBACK_CMD_V_STOP:
-      dvr_playback_video_stop((DVR_PlaybackHandle_t)player);
-      break;
-    case DVR_PLAYBACK_CMD_A_RESTART:
-      //a restart
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
+    }
+
+    if (DVR_PLAYBACK_CMD_IS_A_START(cmd)) {
+      DVR_PB_INFO("do_cmd a_start");
       dvr_playback_audio_start((DVR_PlaybackHandle_t)player, &audio_params, &ad_params);
-      break;
-    case DVR_PLAYBACK_CMD_A_START:
-      dvr_playback_audio_start((DVR_PlaybackHandle_t)player, &audio_params, &ad_params);
-      break;
-    case DVR_PLAYBACK_CMD_A_STOP:
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
-      break;
-    case  DVR_PLAYBACK_CMD_A_STOP_V_RESTART:
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_video_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      break;
-    case DVR_PLAYBACK_CMD_A_STOP_V_START:
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      break;
-    case DVR_PLAYBACK_CMD_V_STOP_A_RESTART:
-      dvr_playback_video_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_audio_start((DVR_PlaybackHandle_t)player, &audio_params, &ad_params);
-      break;
-    case DVR_PLAYBACK_CMD_STOP:
-      break;
-    case DVR_PLAYBACK_CMD_START:
-      break;
-    case DVR_PLAYBACK_CMD_A_START_V_RESTART:
-      dvr_playback_video_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      dvr_playback_audio_start((DVR_PlaybackHandle_t)player, &audio_params, &ad_params);
-      break;
-    case DVR_PLAYBACK_CMD_V_START_A_RESTART:
-      dvr_playback_audio_stop((DVR_PlaybackHandle_t)player);
-      dvr_playback_video_start((DVR_PlaybackHandle_t)player, &video_params);
-      dvr_playback_audio_start((DVR_PlaybackHandle_t)player, &audio_params, &ad_params);
-      break;
-    case DVR_PLAYBACK_CMD_FF:
-    case DVR_PLAYBACK_CMD_FB:
-      _dvr_playback_fffb((DVR_PlaybackHandle_t)player);
-      break;
-    default:
-      break;
+    }
   }
+
   return DVR_SUCCESS;
 }
 
@@ -3206,42 +3113,14 @@ int dvr_playback_seek(DVR_PlaybackHandle_t handle, uint64_t segment_id, uint32_t
 #endif
   }
   if (player->state == DVR_PLAYBACK_STATE_PAUSE) {
+
     if (v_restarted) {
-      switch (player->cmd.cur_cmd) {
-      case DVR_PLAYBACK_CMD_V_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_NONE;
-        break;
-      case DVR_PLAYBACK_CMD_A_STOP_V_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_STOP;
-        break;
-      case DVR_PLAYBACK_CMD_A_START_V_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_START;
-        break;
-      case DVR_PLAYBACK_CMD_AV_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_A_RESTART;
-        break;
-      default:
-        break;
-      }
+      DVR_PLAYBACK_CMD_RESET_V(player->cmd.cur_cmd);
     }
     if (a_restarted) {
-      switch (player->cmd.cur_cmd) {
-      case DVR_PLAYBACK_CMD_A_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_NONE;
-        break;
-      case DVR_PLAYBACK_CMD_V_STOP_A_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_STOP;
-        break;
-      case DVR_PLAYBACK_CMD_V_START_A_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_START;
-        break;
-      case DVR_PLAYBACK_CMD_AV_RESTART:
-        player->cmd.cur_cmd = DVR_PLAYBACK_CMD_V_RESTART;
-        break;
-      default:
-        break;
-      }
+      DVR_PLAYBACK_CMD_RESET_A(player->cmd.cur_cmd);
     }
+
     player->cmd.state = DVR_PLAYBACK_STATE_PAUSE;
     DVR_PLAYER_CHANGE_STATE(player,DVR_PLAYBACK_STATE_PAUSE);
     if (VALID_PID(audio_params.pid) || VALID_PID(video_params.pid))

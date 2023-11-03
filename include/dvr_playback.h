@@ -238,27 +238,50 @@ typedef struct
 /**\brief playback play state*/
 typedef enum
 {
-  DVR_PLAYBACK_CMD_START,               /**< start av */
-  DVR_PLAYBACK_CMD_STOP,                /**< stop av */
-  DVR_PLAYBACK_CMD_V_START,              /**< v start */
-  DVR_PLAYBACK_CMD_A_START   ,           /**< a start */
-  DVR_PLAYBACK_CMD_V_STOP  ,             /**< v stop */
-  DVR_PLAYBACK_CMD_A_STOP,               /**< a stop */
-  DVR_PLAYBACK_CMD_V_RESTART,            /**< v restart */
-  DVR_PLAYBACK_CMD_A_RESTART,            /**< a restart */
-  DVR_PLAYBACK_CMD_AV_RESTART,            /**< av restart */
-  DVR_PLAYBACK_CMD_V_STOP_A_START,         /**< v stop a start*/
-  DVR_PLAYBACK_CMD_A_STOP_V_START,         /**< a stop v_start */
-  DVR_PLAYBACK_CMD_V_STOP_A_RESTART,       /**<v stop a restart*/
-  DVR_PLAYBACK_CMD_A_STOP_V_RESTART,       /**<a stop v restart*/
-  DVR_PLAYBACK_CMD_V_START_A_RESTART,       /**<v start a restart*/
-  DVR_PLAYBACK_CMD_A_START_V_RESTART,       /**<a start v restart*/
-  DVR_PLAYBACK_CMD_PAUSE,               /**< pause */
-  DVR_PLAYBACK_CMD_RESUME,              /**< resume */
-  DVR_PLAYBACK_CMD_SEEK,                /**< seek */
-  DVR_PLAYBACK_CMD_FF,                  /**< fast forward */
-  DVR_PLAYBACK_CMD_FB,                  /**< fast backword */
-  DVR_PLAYBACK_CMD_NONE,                  /**< none */
+  /*Bit order to check:
+      stop > start,
+   */
+  DVR_PLAYBACK_CMD_V_START            = 0x0001, /**< v start */
+  DVR_PLAYBACK_CMD_V_STOP             = 0x0002, /**< v stop */
+  DVR_PLAYBACK_CMD_A_START            = 0x0100, /**< a start */
+  DVR_PLAYBACK_CMD_A_STOP             = 0x0200, /**< a stop */
+  DVR_PLAYBACK_CMD_V_RESTART          = (DVR_PLAYBACK_CMD_V_STOP    | DVR_PLAYBACK_CMD_V_START  ), /**< v restart */
+  DVR_PLAYBACK_CMD_A_RESTART          = (DVR_PLAYBACK_CMD_A_STOP    | DVR_PLAYBACK_CMD_A_START  ), /**< a restart */
+  DVR_PLAYBACK_CMD_V_STOP_A_START     = (DVR_PLAYBACK_CMD_V_STOP    | DVR_PLAYBACK_CMD_A_START  ), /**< v stop a start*/
+  DVR_PLAYBACK_CMD_A_STOP_V_START     = (DVR_PLAYBACK_CMD_A_STOP    | DVR_PLAYBACK_CMD_V_START  ), /**< a stop v_start */
+  DVR_PLAYBACK_CMD_V_STOP_A_RESTART   = (DVR_PLAYBACK_CMD_V_STOP    | DVR_PLAYBACK_CMD_A_RESTART), /**<v stop a restart*/
+  DVR_PLAYBACK_CMD_A_STOP_V_RESTART   = (DVR_PLAYBACK_CMD_A_STOP    | DVR_PLAYBACK_CMD_V_RESTART), /**<a stop v restart*/
+  DVR_PLAYBACK_CMD_V_START_A_RESTART  = (DVR_PLAYBACK_CMD_V_START   | DVR_PLAYBACK_CMD_A_RESTART), /**<v start a restart*/
+  DVR_PLAYBACK_CMD_A_START_V_RESTART  = (DVR_PLAYBACK_CMD_A_START   | DVR_PLAYBACK_CMD_V_RESTART), /**<a start v restart*/
+  DVR_PLAYBACK_CMD_AV_RESTART         = (DVR_PLAYBACK_CMD_A_RESTART | DVR_PLAYBACK_CMD_V_RESTART), /**< av restart */
+  DVR_PLAYBACK_CMD_START              = (DVR_PLAYBACK_CMD_V_START   | DVR_PLAYBACK_CMD_A_START  ), /**< start av */
+  DVR_PLAYBACK_CMD_STOP               = (DVR_PLAYBACK_CMD_V_STOP    | DVR_PLAYBACK_CMD_A_STOP   ), /**< stop av */
+
+  #define DVR_PLAYBACK_CMD_RESET_V(_c)      ((_c) & (~0xFF))
+  #define DVR_PLAYBACK_CMD_RESET_A(_c)      ((_c) & (~0xFF00))
+
+  #define DVR_PLAYBACK_CMD_IS_RESTART(_c)   ((_c) == 0x03)
+  #define DVR_PLAYBACK_CMD_IS_STOP(_c)      ((_c) & 0x02)
+  #define DVR_PLAYBACK_CMD_IS_START(_c)     ((_c) & 0x01)
+
+  #define DVR_PLAYBACK_CMD_GET_V_CMD(_c)    ((_c) & 0xFF)
+  #define DVR_PLAYBACK_CMD_GET_A_CMD(_c)    (((_c) & 0xFF00) >> 8)
+
+  #define DVR_PLAYBACK_CMD_IS_V_RESTART(_c) DVR_PLAYBACK_CMD_IS_RESTART(DVR_PLAYBACK_CMD_GET_V_CMD(_c))
+  #define DVR_PLAYBACK_CMD_IS_A_RESTART(_c) DVR_PLAYBACK_CMD_IS_RESTART(DVR_PLAYBACK_CMD_GET_A_CMD(_c))
+
+  #define DVR_PLAYBACK_CMD_IS_V_STOP(_c)    DVR_PLAYBACK_CMD_IS_STOP(DVR_PLAYBACK_CMD_GET_V_CMD(_c))
+  #define DVR_PLAYBACK_CMD_IS_A_STOP(_c)    DVR_PLAYBACK_CMD_IS_STOP(DVR_PLAYBACK_CMD_GET_A_CMD(_c))
+
+  #define DVR_PLAYBACK_CMD_IS_V_START(_c)   DVR_PLAYBACK_CMD_IS_START(DVR_PLAYBACK_CMD_GET_V_CMD(_c))
+  #define DVR_PLAYBACK_CMD_IS_A_START(_c)   DVR_PLAYBACK_CMD_IS_START(DVR_PLAYBACK_CMD_GET_A_CMD(_c))
+
+  DVR_PLAYBACK_CMD_PAUSE              = 0x10000,  /**< pause */
+  DVR_PLAYBACK_CMD_RESUME             = 0x20000,  /**< resume */
+  DVR_PLAYBACK_CMD_SEEK               = 0x40000,  /**< seek */
+  DVR_PLAYBACK_CMD_FF                 = 0x100000, /**< fast forward */
+  DVR_PLAYBACK_CMD_FB                 = 0x200000, /**< fast backword */
+  DVR_PLAYBACK_CMD_NONE               = 0,        /**< none */
 } DVR_PlaybackCmd_t;
 
 
