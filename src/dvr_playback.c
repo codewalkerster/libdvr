@@ -1081,9 +1081,9 @@ static void* _dvr_playback_thread(void *arg)
       (player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE)
     {
       trick_stat = _dvr_playback_get_trick_stat((DVR_PlaybackHandle_t)player);
-      if (trick_stat > 0) {
-        DVR_PB_INFO("trick stat[%d] is > 0 cur cmd[%d]last cmd[%d]flag[0x%x]",
-                      trick_stat, player->cmd.cur_cmd, player->cmd.last_cmd, player->play_flag);
+      if (trick_stat > 0 || (trick_stat <= 0 && _dvr_time_getClock() > player->next_fffb_time)) {
+        DVR_PB_INFO("trick stat[%d], cur cmd[%d]last cmd[%d]flag[0x%x], now[%u]>next_fffb_time[%u]",
+                     trick_stat, player->cmd.cur_cmd, player->cmd.last_cmd, player->play_flag, _dvr_time_getClock(), player->next_fffb_time);
         if (player->cmd.cur_cmd == DVR_PLAYBACK_CMD_SEEK || (player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE) {
           //check last cmd
           if (player->cmd.last_cmd == DVR_PLAYBACK_CMD_PAUSE
