@@ -322,7 +322,6 @@ static int _dvr_playback_timeoutwait(DVR_PlaybackHandle_t handle , int ms)
 {
   DVR_Playback_t *player = (DVR_Playback_t *) handle;
 
-
   if (player == NULL) {
     DVR_PB_INFO("player is NULL");
     return DVR_FAILURE;
@@ -330,16 +329,11 @@ static int _dvr_playback_timeoutwait(DVR_PlaybackHandle_t handle , int ms)
 
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
-  //ms为毫秒，换算成秒
   ts.tv_sec += ms/1000;
-  //在outtime的基础上，增加ms毫秒
-  //outtime.tv_nsec为纳秒，1微秒=1000纳秒
-  //tv_nsec此值再加上剩余的毫秒数 ms%1000，有可能超过1秒。需要特殊处理
-  uint64_t  us = ts.tv_nsec/1000 + 1000 * (ms % 1000); //微秒
-  //us的值有可能超过1秒，
+  uint64_t  us = ts.tv_nsec/1000 + 1000 * (ms % 1000);
   ts.tv_sec += us / 1000000;
   us = us % 1000000;
-  ts.tv_nsec = us * 1000;//换算成纳秒
+  ts.tv_nsec = us * 1000;
 
   int val = dvr_mutex_save(&player->lock);
   pthread_cond_timedwait(&player->cond, &player->lock.lock, &ts);
@@ -1282,7 +1276,7 @@ static void* _dvr_playback_thread(void *arg)
       continue;
     }
     //DVR_PB_INFO("read ts [%d]buf_len[%d]speed[%f]real_read:%d", read, buf_len, player->speed, real_read);
-    if (read == 0) {
+    if (read == 0 && !IS_FB(player->speed)) {
       //file end.need to play next segment
       #define MIN_CACHE_TIME (3000)
       int delay = 0;
