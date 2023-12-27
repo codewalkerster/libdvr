@@ -2835,6 +2835,10 @@ int dvr_playback_resume(DVR_PlaybackHandle_t handle) {
     if (player->has_audio)
           AmTsPlayer_pauseAudioDecoding(player->handle);
 
+    DVR_PB_INFO("set start state cur cmd[%d]", player->cmd.cur_cmd);
+    if (player->cmd.speed.speed.speed == PLAYBACK_SPEED_X1)
+      _dvr_cmd(handle, player->cmd.cur_cmd);
+
     if (player->has_video) {
       DVR_PB_INFO("dvr_playback_resume set trick mode none 1");
       AmTsPlayer_setTrickMode(player->handle, AV_VIDEO_TRICK_MODE_NONE);
@@ -2842,9 +2846,7 @@ int dvr_playback_resume(DVR_PlaybackHandle_t handle) {
     }
     if (player->has_audio)
       AmTsPlayer_resumeAudioDecoding(player->handle);
-    DVR_PB_INFO("set start state cur cmd[%d]", player->cmd.cur_cmd);
-    if (player->cmd.speed.speed.speed == PLAYBACK_SPEED_X1)
-      _dvr_cmd(handle, player->cmd.cur_cmd);
+
     player->cmd.state = DVR_PLAYBACK_STATE_START;
     DVR_PLAYER_CHANGE_STATE(player,DVR_PLAYBACK_STATE_START);
     DVR_PB_INFO("unlock");
