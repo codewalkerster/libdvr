@@ -40,7 +40,7 @@
     player,_dvr_playback_state_toString(player->state),_dvr_playback_state_toString(newstate));\
     player->state=newstate;
 
-//#define FOR_SKYWORTH_FETCH_RDK
+//#define FOR_OTT_49490
 
 #define FFFB_SLEEP_TIME    (1000)//500ms
 #define FB_DEFAULT_LEFT_TIME    (3000)
@@ -1371,7 +1371,7 @@ static void* _dvr_playback_thread(void *arg)
       dvr_mutex_unlock(&player->lock);
     }//read len 0 check end
 
-#ifdef FOR_SKYWORTH_FETCH_RDK
+#ifdef FOR_OTT_49490
     if (player->openParams.is_timeshift == DVR_TRUE && player->speed >= FF_SPEED)
     {
       DVR_PlaybackSegmentInfo_t *newest_segment
@@ -3577,7 +3577,7 @@ static int _dvr_playback_fffb(DVR_PlaybackHandle_t handle) {
 
       dvr_mutex_unlock(&player->lock);
       DVR_PB_DEBUG("unlock");
-#ifdef FOR_SKYWORTH_FETCH_RDK
+#ifdef FOR_OTT_49490
       DVR_PlaybackSpeed_t normal_speed = {PLAYBACK_SPEED_X1,0};
       DVR_PB_INFO("Change to normal speed due to FB reaching beginning");
       dvr_playback_set_speed((DVR_PlaybackHandle_t)player,normal_speed);
