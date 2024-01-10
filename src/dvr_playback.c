@@ -1067,15 +1067,18 @@ static void* _dvr_playback_thread(void *arg)
       }
     }
 
-    if (player->cmd.cur_cmd == DVR_PLAYBACK_CMD_SEEK ||
-      player->cmd.cur_cmd == DVR_PLAYBACK_CMD_FF ||
-      player->cmd.cur_cmd == DVR_PLAYBACK_CMD_FB ||
-      player->speed > FF_SPEED ||player->speed <= FB_SPEED ||
-      (player->state == DVR_PLAYBACK_STATE_PAUSE) ||
-      (player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE)
+    #define __IS_SPEED() \
+      (player->cmd.cur_cmd == DVR_PLAYBACK_CMD_FF \
+      || player->cmd.cur_cmd == DVR_PLAYBACK_CMD_FB \
+      || player->speed > FF_SPEED ||player->speed <= FB_SPEED)
+
+    if (player->cmd.cur_cmd == DVR_PLAYBACK_CMD_SEEK
+      || __IS_SPEED()
+      || player->state == DVR_PLAYBACK_STATE_PAUSE
+      || (player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE)
     {
       trick_stat = _dvr_playback_get_trick_stat((DVR_PlaybackHandle_t)player);
-      if (trick_stat > 0 || (trick_stat <= 0 && _dvr_time_getClock() > player->next_fffb_time)) {
+      if (trick_stat > 0 || (__IS_SPEED() && _dvr_time_getClock() > player->next_fffb_time)) {
         DVR_PB_INFO("trick stat[%d], cur cmd[%d]last cmd[%d]flag[0x%x], now[%u]>next_fffb_time[%u]",
                      trick_stat, player->cmd.cur_cmd, player->cmd.last_cmd, player->play_flag, _dvr_time_getClock(), player->next_fffb_time);
         if (player->cmd.cur_cmd == DVR_PLAYBACK_CMD_SEEK || (player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE) {
