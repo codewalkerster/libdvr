@@ -1,0 +1,33 @@
+package {
+    // See: http://go/android-license-faq
+    default_applicable_licenses: [
+        "Android-Apache-2.0",
+    ],
+}
+
+cc_binary {
+    name: "dummy_fe_server",
+    vendor: true,
+
+    srcs: [
+        "dummy_fe_server.c",
+        "libcJSON/cJSON.c",
+        "libexpat/xmlparse.c",
+        "libexpat/xmltok.c",
+        "libexpat/xmlrole.c",
+	],
+
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-DHAVE_EXPAT_CONFIG_H",
+        "-UWIN32_LEAN_AND_MEAN",
+        "-include stdio.h",
+    ],
+
+    local_include_dirs: ["libcJSON", "libexpat"],
+    shared_libs: [
+        "libcutils",
+        "libc",
+    ],
+}
