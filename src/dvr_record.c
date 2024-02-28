@@ -342,11 +342,6 @@ void *record_thread(void *arg)
   while (p_ctx->state == DVR_RECORD_STATE_STARTED ||
     p_ctx->state == DVR_RECORD_STATE_PAUSE) {
 
-    if (p_ctx->state == DVR_RECORD_STATE_PAUSE) {
-      //wait resume record
-      usleep(20*1000);
-      continue;
-    }
     gettimeofday(&t1, NULL);
 
     /* data from dmx, normal dvr case */
@@ -371,6 +366,11 @@ void *record_thread(void *arg)
     if (len == DVR_FAILURE) {
       //usleep(10*1000);
       //DVR_INFO("%s, start_read error", __func__);
+      continue;
+    }
+    if (p_ctx->state == DVR_RECORD_STATE_PAUSE) {
+      //wait resume record
+      usleep(20*1000);
       continue;
     }
     gettimeofday(&t2, NULL);
