@@ -579,13 +579,14 @@ DVB_RESULT AML_DMX_Close(int dev_no)
         }
     }
 
+    pthread_mutex_unlock(&dev->lock);
+
     if (open_count == 0)
     {
         dev->running = 0;
         pthread_join(dev->thread, NULL);
     }
 
-    pthread_mutex_unlock(&dev->lock);
     pthread_mutex_destroy(&dev->lock);
 
     return ret;
