@@ -75,7 +75,7 @@ int dvr_segment_del_by_location(const char *location)
   {
     /* del file */
     memset(cmd, 0, sizeof(cmd));
-    sprintf(cmd, "rm %s-* %s.list %s.stats %s.odb %s.dat", location, location, location, location, location);
+    sprintf(cmd, "rm \"%s\"-* \"%s\".list \"%s\".stats \"%s\".odb \"%s\".dat", location, location, location, location, location);
     fp = popen(cmd, "r");
     DVR_RETURN_IF_FALSE(fp);
   }
@@ -183,7 +183,7 @@ int dvr_segment_get_list(const char *location, uint32_t *p_segment_nb, uint64_t 
   } else { /*the list file does not exist*/
     uint32_t id = 0;
     memset(cmd, 0, sizeof(cmd));
-    sprintf(cmd, "ls -l %s-*.ts | wc -l", location);
+    sprintf(cmd, "ls -l \"%s\"-*.ts | wc -l", location);
     fp = popen(cmd, "r");
     DVR_RETURN_IF_FALSE(fp);
     memset(buf, 0, sizeof(buf));
@@ -200,7 +200,7 @@ int dvr_segment_get_list(const char *location, uint32_t *p_segment_nb, uint64_t 
 
     /*try to get the 1st segment id*/
     memset(cmd, 0, sizeof(cmd));
-    sprintf(cmd, "ls %s-*.ts", location);
+    sprintf(cmd, "ls \"%s\"-*.ts", location);
     fp = popen(cmd, "r");
     DVR_RETURN_IF_FALSE(fp);
     memset(buf, 0, sizeof(buf));
