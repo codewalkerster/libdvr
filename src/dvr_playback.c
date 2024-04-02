@@ -3835,6 +3835,10 @@ int dvr_playback_set_speed(DVR_PlaybackHandle_t handle, DVR_PlaybackSpeed_t spee
       player->speed = (float)speed.speed.speed/(float)100;
       player->cmd.cur_cmd = DVR_PLAYBACK_CMD_AV_RESTART;
       player->fffb_play = DVR_FALSE;
+
+      /*paused in fffb and set speed(>0), resume the playback*/
+      dvr_playback_resume(player);
+
       DVR_PB_DEBUG("unlock ---\r\n");
       dvr_mutex_unlock(&player->lock);
       return DVR_SUCCESS;

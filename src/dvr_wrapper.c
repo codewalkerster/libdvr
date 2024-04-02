@@ -2216,19 +2216,6 @@ int dvr_wrapper_set_playback_speed (DVR_WrapperPlayback_t playback, float speed)
 
   error = dvr_playback_set_speed(ctx->playback.player, dvr_speed);
 
-  if (ctx->playback.speed != 0.0f && ctx->playback.speed != 100.0f
-      && ctx->playback.last_event == DVR_PLAYBACK_EVENT_REACHED_BEGIN
-      && ctx->playback.seg_status.state == DVR_PLAYBACK_STATE_PAUSE) {
-    DVR_WRAPPER_INFO("x%f -> x%f, paused, do resume first\n", ctx->playback.speed, speed);
-    error = dvr_playback_resume(ctx->playback.player);
-  } else if (ctx->playback.speed == 0.0f
-      && speed != 0.0f
-      && speed != 100.0f) {
-    /*libdvr do not support pause with speed=0, will not be here*/
-    DVR_WRAPPER_INFO("x%f -> x%f, do resume first\n", ctx->playback.speed, speed);
-    error = dvr_playback_resume(ctx->playback.player);
-  }
-
   ctx->playback.speed = speed;
 
   DVR_WRAPPER_INFO("playback(sn:%ld) speeded(x%f) (%d)\n",
