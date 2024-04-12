@@ -1,0 +1,3 @@
+command:
+am_aucpu_test src=1 dmx=0 pat=0xf m_type=6 bs0=6291456 pall=1 input=/data/birds.ts path=/data/pengcc/
+
