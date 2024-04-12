@@ -25,6 +25,8 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 //#include "am_misc.h"
 
 /****************************************************************************
@@ -118,13 +120,13 @@ static AM_INLINE AM_ErrorCode_t dmx_get_dev(int dev_no, AM_DMX_Device_t **dev)
 }
 
 /**\brief 根据设备号取得设备结构并检查设备是否已经打开*/
-static AM_INLINE AM_ErrorCode_t dmx_get_openned_dev(int dev_no, AM_DMX_Device_t **dev)
+static AM_INLINE AM_ErrorCode_t dmx_get_opened_dev(int dev_no, AM_DMX_Device_t **dev)
 {
     AM_TRY(dmx_get_dev(dev_no, dev));
 
     if ((*dev)->open_count <= 0)
     {
-        printf("demux device %d has not been openned", dev_no);
+        printf("demux device %d has not been opened", dev_no);
         return AM_DMX_ERR_INVALID_DEV_NO;
     }
 
@@ -351,7 +353,7 @@ AM_ErrorCode_t AM_DMX_Open(int dev_no, const AM_DMX_OpenPara_t *para)
 
     if (dev->open_count > 0)
     {
-        printf("demux device %d has already been openned", dev_no);
+        printf("demux device %d has already been opened", dev_no);
         dev->open_count++;
         ret = AM_SUCCESS;
         goto final;
@@ -407,7 +409,7 @@ AM_ErrorCode_t AM_DMX_Close(int dev_no)
     AM_ErrorCode_t ret = AM_SUCCESS;
     int i;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
 //    pthread_mutex_lock(&am_gAdpLock);
 
@@ -451,7 +453,7 @@ AM_ErrorCode_t AM_DMX_AllocateFilter(int dev_no, int *fhandle)
 
     assert(fhandle);
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -505,7 +507,7 @@ AM_ErrorCode_t AM_DMX_SetSecFilter(int dev_no, int fhandle, const struct dmx_sct
 
     assert(params);
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     if (!dev->drv->set_sec_filter)
     {
@@ -559,7 +561,7 @@ AM_ErrorCode_t AM_DMX_SetPesFilter(int dev_no, int fhandle, const struct dmx_pes
 
     assert(params);
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     if (!dev->drv->set_pes_filter)
     {
@@ -593,7 +595,7 @@ AM_ErrorCode_t AM_DMX_GetSTC(int dev_no, int fhandle)
     AM_DMX_Filter_t *filter;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
     printf("%s line:%d\n", __FUNCTION__, __LINE__);
     if (!dev->drv->get_stc)
     {
@@ -630,7 +632,7 @@ AM_ErrorCode_t AM_DMX_FreeFilter(int dev_no, int fhandle)
     AM_DMX_Filter_t *filter;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -660,7 +662,7 @@ AM_ErrorCode_t AM_DMX_StartFilter(int dev_no, int fhandle)
     AM_DMX_Filter_t *filter = NULL;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -700,7 +702,7 @@ AM_ErrorCode_t AM_DMX_StopFilter(int dev_no, int fhandle)
     AM_DMX_Filter_t *filter = NULL;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -733,7 +735,7 @@ AM_ErrorCode_t AM_DMX_SetBufferSize(int dev_no, int fhandle, int size)
     AM_DMX_Filter_t *filter;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -769,7 +771,7 @@ AM_ErrorCode_t AM_DMX_GetCallback(int dev_no, int fhandle, AM_DMX_DataCb *cb, vo
     AM_DMX_Filter_t *filter;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
 
     pthread_mutex_lock(&dev->lock);
 
@@ -804,7 +806,7 @@ AM_ErrorCode_t AM_DMX_SetCallback(int dev_no, int fhandle, AM_DMX_DataCb cb, voi
     AM_DMX_Filter_t *filter;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
     pthread_mutex_lock(&dev->lock);
     ret = dmx_get_used_filter(dev, fhandle, &filter);
     if (ret == AM_SUCCESS)
@@ -830,7 +832,7 @@ AM_ErrorCode_t AM_DMX_SetInput(int dev_no, int input)
     AM_DMX_Device_t *dev;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
     pthread_mutex_lock(&dev->lock);
     if (!dev->drv->set_input)
     {
@@ -854,6 +856,30 @@ AM_ErrorCode_t AM_DMX_SetInput(int dev_no, int input)
     return ret;
 }
 
+AM_ErrorCode_t AM_DMX_SetSource(int dev_no, int source)
+{
+    AM_DMX_Device_t *dev;
+    AM_ErrorCode_t ret = AM_SUCCESS;
+
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
+    pthread_mutex_lock(&dev->lock);
+    if (!dev->drv->set_source)
+    {
+        printf("do not support set_source");
+        ret = AM_DMX_ERR_NOT_SUPPORTED;
+    }
+
+    if (ret == AM_SUCCESS)
+    {
+        ret = dev->drv->set_source(dev, source);
+    }
+
+    pthread_mutex_unlock(&dev->lock);
+
+    return ret;
+}
+
+
 /**\brief DMX同步，可用于等待回调函数执行完毕
  * \param dev_no 解复用设备号
  * \return
@@ -865,7 +891,7 @@ AM_ErrorCode_t AM_DMX_Sync(int dev_no)
     AM_DMX_Device_t *dev;
     AM_ErrorCode_t ret = AM_SUCCESS;
 
-    AM_TRY(dmx_get_openned_dev(dev_no, &dev));
+    AM_TRY(dmx_get_opened_dev(dev_no, &dev));
     pthread_mutex_lock(&dev->lock);
     if (dev->thread != pthread_self())
     {

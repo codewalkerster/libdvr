@@ -190,6 +190,8 @@ extern AM_ErrorCode_t AM_DMX_SetCallback(int dev_no, int fhandle, AM_DMX_DataCb 
  */
 extern AM_ErrorCode_t AM_DMX_SetInput(int dev_no, int input);
 
+extern AM_ErrorCode_t AM_DMX_SetSource(int dev_no, int source);
+
 /**\cond */
 /**\brief Sync the demux data
  * \param dev_no Demux device number

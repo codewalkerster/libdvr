@@ -65,6 +65,7 @@ typedef struct
     AM_ErrorCode_t (*poll)(AM_DMX_Device_t *dev, AM_DMX_FilterMask_t *mask, int timeout);
     AM_ErrorCode_t (*read)(AM_DMX_Device_t *dev, AM_DMX_Filter_t *filter, uint8_t *buf, int *size);
     AM_ErrorCode_t (*set_input)(AM_DMX_Device_t *dev, int input);
+	AM_ErrorCode_t (*set_source)(AM_DMX_Device_t *dev, int source);
     AM_ErrorCode_t (*get_stc)(AM_DMX_Device_t *dev, AM_DMX_Filter_t *filter);
 } AM_DMX_Driver_t;
 

@@ -31,6 +31,8 @@
 #include <string.h>
 #include <errno.h>
 #include <poll.h>
+#include <stdlib.h>
+
 /*add for config define for linux dvb *.h*/
 //#include <am_config.h>
 #include "dmx.h"
@@ -74,6 +76,7 @@ static AM_ErrorCode_t dvb_poll(AM_DMX_Device_t *dev, AM_DMX_FilterMask_t *mask, 
 static AM_ErrorCode_t dvb_read(AM_DMX_Device_t *dev, AM_DMX_Filter_t *filter, uint8_t *buf, int *size);
 static AM_ErrorCode_t dvb_set_input(AM_DMX_Device_t *dev, int input);
 static AM_ErrorCode_t dvb_get_stc(AM_DMX_Device_t *dev, AM_DMX_Filter_t *filter);
+static AM_ErrorCode_t dvb_set_source(AM_DMX_Device_t *dev, int source);
 
 const AM_DMX_Driver_t linux_dvb_dmx_drv = {
 .open  = dvb_open,
@@ -87,6 +90,7 @@ const AM_DMX_Driver_t linux_dvb_dmx_drv = {
 .poll           = dvb_poll,
 .read           = dvb_read,
 .set_input     = dvb_set_input,
+.set_source     = dvb_set_source,
 .get_stc        = dvb_get_stc
 };
 
@@ -345,6 +349,27 @@ static AM_ErrorCode_t dvb_set_input(AM_DMX_Device_t *dev, int input)
     ret = ioctl(fd, DMX_SET_INPUT, input);
 
     printf("dmx set_input ret:%d, input:%d\n", ret, input);
+
+    close(fd);
+    return 0;
+}
+
+static AM_ErrorCode_t dvb_set_source(AM_DMX_Device_t *dev, int source)
+{
+    int ret;
+    int fd = 0;
+    DVBDmx_t *dmx = (DVBDmx_t*)dev->drv_data;
+
+    fd = open(dmx->dev_name, O_RDWR);
+    if (fd == -1)
+    {
+        printf("cannot open for set dmx source \"%s\" (%s)", dmx->dev_name, strerror(errno));
+        return AM_DMX_ERR_CANNOT_OPEN_DEV;
+    }
+
+    ret = ioctl(fd, DMX_SET_HW_SOURCE, source);
+
+    printf("dmx set_source ret:%d, source:%d\n", ret, source);
 
     close(fd);
     return 0;

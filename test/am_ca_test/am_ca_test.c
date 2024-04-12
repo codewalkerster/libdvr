@@ -91,6 +91,9 @@ static int key_index[128];
 
 #define get_u_para(_i) (u_para[(_i)]? u_para[(_i)] : u_para_g)
 
+int inject_file(int dvr_no, char *inject_name);
+int inject_file_and_rec_close(void);
+
 #if 0
 static void pes_cb(AM_PES_Handle_t handle, uint8_t *buf, int size) {
     int u = (int)(long)AM_PES_GetUserData(handle);
@@ -634,6 +637,7 @@ int main(int argc, char **argv)
 
     if (u_input_g) {
         AM_DMX_SetInput(dmx, INPUT_LOCAL);
+        AM_DMX_SetSource(dmx, 0);
     }
 
     memset(&key_index, -1, sizeof(key_index));

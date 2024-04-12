@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include "aml_key.h"
+#include <stdio.h>
 
 /****************************************************************************
  * Macro definitions
