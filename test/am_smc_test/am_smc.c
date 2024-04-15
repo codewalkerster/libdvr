@@ -11,7 +11,7 @@
 #define AM_DEBUG_LEVEL 5
 
 //#include <am_debug.h>
-//#include "am_time.h"
+#include "am_time.h"
 #include "am_mem.h"
 #include "am_smc_internal.h"
 #include "am_adp_internal.h"
