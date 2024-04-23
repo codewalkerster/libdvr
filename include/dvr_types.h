@@ -146,7 +146,9 @@ typedef enum {
   DVR_VIDEO_FORMAT_MPEG2, /**< MPEG2 video.*/
   DVR_VIDEO_FORMAT_H264,  /**< H264.*/
   DVR_VIDEO_FORMAT_HEVC ,  /**< HEVC.*/
-  DVR_VIDEO_FORMAT_VP9  /**< VP9.*/
+  DVR_VIDEO_FORMAT_VP9,  /**< VP9.*/
+  DVR_VIDEO_FORMAT_DVES_AVC,  /**< DVES AVC*/
+  DVR_VIDEO_FORMAT_DVES_HEVC,   /**< DVES HEVC*/
 } DVR_VideoFormat_t;
 
 /**Audio format.*/

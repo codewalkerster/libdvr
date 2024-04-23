@@ -299,6 +299,12 @@ static int _dvr_convert_stream_fmt(int fmt, DVR_Bool_t is_audio) {
         case DVR_VIDEO_FORMAT_VP9:
           format = AV_VIDEO_CODEC_VP9;
           break;
+        case DVR_VIDEO_FORMAT_DVES_AVC:
+          format = AV_VIDEO_CODEC_DVES_AVC;
+          break;
+        case DVR_VIDEO_FORMAT_DVES_HEVC:
+          format = AV_VIDEO_CODEC_DVES_HEVC;
+          break;
     }
   } else {
     //for audio fmt
