@@ -918,13 +918,23 @@ int dvr_record_next_segment(DVR_RecordHandle_t handle, DVR_RecordStartParams_t *
   /*Open the new record segment*/
   if (SEG_CALL_IS_VALID(open)) {
     memset(&open_params, 0, sizeof(open_params));
+
     memcpy(open_params.location, p_ctx->location, sizeof(p_ctx->location));
     open_params.segment_id = params->segment.segment_id;
     open_params.mode = SEGMENT_MODE_WRITE;
     open_params.force_sysclock = p_ctx->force_sysclock;
+
     DVR_INFO("%s: p_ctx->location:%s  params->location:%s", __func__, p_ctx->location,params->location);
     SEG_CALL_RET(open, (&open_params, &p_ctx->segment_handle), ret);
     DVR_RETURN_IF_FALSE(ret == DVR_SUCCESS);
+
+    if (SEG_CALL_IS_VALID(ioctl)) {
+      DVR_Control_t *pc;
+      list_for_each_entry(pc, &p_ctx->segment_ctrls, head) {
+        SEG_CALL_RET(ioctl, (p_ctx->segment_handle, pc->cmd, pc->data, pc->size), ret);
+        DVR_RETURN_IF_FALSE(ret == DVR_SUCCESS);
+      }
+    }
   }
 
   /*process params*/
