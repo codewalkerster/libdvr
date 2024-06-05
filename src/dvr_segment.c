@@ -133,8 +133,6 @@ int dvr_segment_del_by_location(const char *location)
     free(path);
 
   } else {
-
-    free(loc_dname);
     DVR_INFO("%s mem fail", __func__);
   }
 
