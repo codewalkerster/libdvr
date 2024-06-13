@@ -28,7 +28,7 @@
 #include "dmx.h"
 #include "dvb_dmx_wrapper.h"
 
-#define DMX_COUNT (3)
+#define DMX_COUNT (17)
 #define DMX_FILTER_COUNT (32*DMX_COUNT)
 #define SEC_BUF_SIZE (4096)
 #define DMX_POLL_TIMEOUT (200)
