@@ -931,6 +931,7 @@ int dvr_record_next_segment(DVR_RecordHandle_t handle, DVR_RecordStartParams_t *
     if (SEG_CALL_IS_VALID(ioctl)) {
       DVR_Control_t *pc;
       list_for_each_entry(pc, &p_ctx->segment_ctrls, head) {
+        DVR_INFO("%s, replay ctrl[cmd:%d]", __func__, pc->cmd);
         SEG_CALL_RET(ioctl, (p_ctx->segment_handle, pc->cmd, pc->data, pc->size), ret);
         DVR_RETURN_IF_FALSE(ret == DVR_SUCCESS);
       }
@@ -1248,7 +1249,9 @@ int dvr_record_ioctl(DVR_RecordHandle_t handle, unsigned int cmd, void *data, si
   if (SEG_CALL_IS_VALID(ioctl)) {
     if (p_ctx->segment_handle) {
       SEG_CALL_RET(ioctl, (p_ctx->segment_handle, cmd, data, size), ret);
-    } else {
+    }
+
+    {
       DVR_Control_t *ctrl = (DVR_Control_t *)calloc(1, sizeof(DVR_Control_t));
       if (ctrl) {
         ctrl->cmd = cmd;
@@ -1266,6 +1269,7 @@ int dvr_record_ioctl(DVR_RecordHandle_t handle, unsigned int cmd, void *data, si
       }
       if (ctrl) {
         list_add_tail(&ctrl->head, &p_ctx->segment_ctrls);
+        DVR_INFO("%s, save ctrl[cmd:%d]", __func__, ctrl->cmd);
         ret = DVR_SUCCESS;
       }
     }
