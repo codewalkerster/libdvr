@@ -160,6 +160,53 @@ static DVR_Bool_t _dvr_support_speed(int speed) {
   return ret;
 }
 
+//get sys time sec
+static uint32_t _dvr_getClock_sec(void)
+{
+  struct timespec ts;
+  uint32_t s;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  s = (uint32_t)(ts.tv_sec);
+  DVR_PB_INFO("n:%u", s);
+  return s;
+}
+
+//get sys time ms
+static uint32_t _dvr_time_getClock(void)
+{
+  struct timespec ts;
+  uint32_t ms;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  ms = (uint32_t)(ts.tv_sec*1000+ts.tv_nsec/1000000);
+  return ms;
+}
+
+static void calc_speed_control(DVR_Playback_t *player, int32_t play_cur)
+{
+  if (player->con_spe.ply_sta == 0) {
+    DVR_PB_INFO("player dur[%d] sta[%d] cur[%d] -----reinit",
+                  player->con_spe.ply_dur,
+                  player->con_spe.ply_sta,
+                  play_cur);
+    player->con_spe.ply_sta = play_cur;
+  } else if (player->speed == 1.0f && player->con_spe.ply_sta < play_cur) {
+    player->con_spe.ply_dur += (play_cur - player->con_spe.ply_sta);
+    DVR_PB_INFO("player dur[%d] sta[%d] cur[%d]",
+                  player->con_spe.ply_dur,
+                  player->con_spe.ply_sta,
+                  play_cur);
+    player->con_spe.ply_sta = play_cur;
+  }
+
+  if (player->con_spe.sys_sta == 0) {
+    player->con_spe.sys_sta = _dvr_time_getClock();
+  } else if (player->speed == 1.0f && player->con_spe.sys_sta > 0) {
+    player->con_spe.sys_dur += (_dvr_time_getClock() - player->con_spe.sys_sta);
+    player->con_spe.sys_sta = _dvr_time_getClock();
+  }
+}
+
+
 void _dvr_tsplayer_callback_test(void *user_data, am_tsplayer_event *event)
 {
   DVR_PB_INFO("in callback test ");
@@ -295,27 +342,6 @@ static int _dvr_playback_get_trick_stat(DVR_PlaybackHandle_t handle)
   return player->first_frame;
 }
 
-
-//get sys time sec
-static uint32_t _dvr_getClock_sec(void)
-{
-  struct timespec ts;
-  uint32_t s;
-  clock_gettime(CLOCK_REALTIME, &ts);
-  s = (uint32_t)(ts.tv_sec);
-  DVR_PB_INFO("n:%u", s);
-  return s;
-}
-
-//get sys time ms
-static uint32_t _dvr_time_getClock(void)
-{
-  struct timespec ts;
-  uint32_t ms;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  ms = (uint32_t)(ts.tv_sec*1000+ts.tv_nsec/1000000);
-  return ms;
-}
 
 //timeout wait signal
 static int _dvr_playback_timeoutwait(DVR_PlaybackHandle_t handle , int ms)
@@ -1021,6 +1047,18 @@ static void* _dvr_playback_thread(void *arg)
   if (player->vendor == DVR_PLAYBACK_VENDOR_AMAZON)
     check_no_data_time = 8;
   int trick_stat = 0;
+
+  player->control_speed_enable = player->fake_mode;
+  if (player->control_speed_enable == 1
+      && player->control_speed_enable != player->control_speed_enable_last) {
+    player->control_speed_enable_last = player->control_speed_enable;
+    player->con_spe.ply_dur = 0;
+    player->con_spe.ply_sta = 0;
+    player->con_spe.sys_dur = 0;
+    player->con_spe.sys_sta = 0;
+  }
+  DVR_PB_INFO("sc: playback thread start with enable:%d", player->control_speed_enable);
+
   while (player->is_running/* || player->cmd.last_cmd != player->cmd.cur_cmd*/) {
 
     //check trick stat
@@ -1500,6 +1538,21 @@ rewrite:
       DVR_PB_INFO("----first write ts data");
     }
 
+    if (!player->has_audio && player->fake_mode) {
+        DVR_PB_INFO("sc: force enable=1 in video fake mode.");
+        player->control_speed_enable = 1;
+    } else {
+        player->control_speed_enable = player->control_speed_enable_user;
+    }
+    if (player->control_speed_enable == 1
+        && player->control_speed_enable != player->control_speed_enable_last) {
+      player->control_speed_enable_last = player->control_speed_enable;
+      player->con_spe.ply_dur = 0;
+      player->con_spe.ply_sta = 0;
+      player->con_spe.sys_dur = 0;
+      player->con_spe.sys_sta = 0;
+    }
+
     ret = AmTsPlayer_writeData(player->handle, &input_buffer, write_timeout_ms);
     if (ret == AM_TSPLAYER_OK) {
       player->ts_cache_len = 0;
@@ -1512,6 +1565,15 @@ check0:
                 //DVR_PB_DEBUG(1, "playback thread exit");
                 break;
             }
+
+            if (!player->has_audio && player->fake_mode) {
+              /*fine tune for fake mode*/
+              uint64_t seg_id;
+              int32_t play_cur = _dvr_get_play_cur_time((DVR_PlaybackHandle_t)player, &seg_id);
+
+              calc_speed_control(player, play_cur);
+            }
+
             if (_dvr_check_speed_con((DVR_PlaybackHandle_t)player) == DVR_FALSE){
               dvr_mutex_lock(&player->lock);
               _dvr_playback_timeoutwait((DVR_PlaybackHandle_t)player, 50);
@@ -1559,7 +1621,7 @@ end:
 }
 
 
-static int _start_playback_thread(DVR_PlaybackHandle_t handle)
+static int _start_playback_thread(DVR_PlaybackHandle_t handle, int fake_mode)
 {
   DVR_Playback_t *player = (DVR_Playback_t *) handle;
 
@@ -1572,6 +1634,7 @@ static int _start_playback_thread(DVR_PlaybackHandle_t handle)
     return 0;
   }
   player->is_running = DVR_TRUE;
+  player->fake_mode = fake_mode;
   int rc = pthread_create(&player->playback_thread, NULL, _dvr_playback_thread, (void*)player);
   if (rc < 0)
     player->is_running = DVR_FALSE;
@@ -1673,6 +1736,8 @@ int dvr_playback_open(DVR_PlaybackHandle_t *p_handle, DVR_PlaybackOpenParams_t *
 
   player->handle = params->player_handle ;
   player->control_speed_enable = params->control_speed_enable;
+  player->control_speed_enable_user = player->control_speed_enable;
+  player->control_speed_enable_last = player->control_speed_enable;
 
   AmTsPlayer_getCb(player->handle, &player->player_callback_func, &player->player_callback_userdata);
   //for test get callback
@@ -1747,6 +1812,9 @@ int dvr_playback_open(DVR_PlaybackHandle_t *p_handle, DVR_PlaybackOpenParams_t *
   player->need_seek_start = DVR_TRUE;
   //fake_pid init
   player->fake_pid = getFakePid();
+
+  player->fake_mode = 1;
+
   *p_handle = player;
   return DVR_SUCCESS;
 }
@@ -1852,6 +1920,7 @@ int dvr_playback_start(DVR_PlaybackHandle_t handle, DVR_PlaybackFlag_t flag) {
   {
     if (VALID_PID(video_params.pid)) {
       player->has_video = DVR_TRUE;
+      player->fake_mode = (video_params.pid == player->fake_pid)? 1 : 0;
       //if set flag is pause live, we need set trick mode
       if ((player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) == DVR_PLAYBACK_STARTED_PAUSEDLIVE) {
         DVR_PB_INFO("set trick mode -pauselive flag--");
@@ -1914,7 +1983,7 @@ int dvr_playback_start(DVR_PlaybackHandle_t handle, DVR_PlaybackFlag_t flag) {
 #endif
   DVR_PB_DEBUG("unlock");
   dvr_mutex_unlock(&player->lock);
-  _start_playback_thread(handle);
+  _start_playback_thread(handle, (video_params.pid == player->fake_pid)? 1 : 0);
   return DVR_SUCCESS;
 }
 /**\brief dvr play back add segment info to segment list
@@ -2105,6 +2174,7 @@ static int _do_handle_pid_update(DVR_PlaybackHandle_t handle, DVR_PlaybackPids_t
           DVR_PB_INFO("stop video");
           AmTsPlayer_stopVideoDecoding(player->handle);
           player->has_video = DVR_FALSE;
+          player->fake_mode = 0;
         }
       } else if (type == 1) {
         //stop audio
@@ -2129,6 +2199,7 @@ static int _do_handle_pid_update(DVR_PlaybackHandle_t handle, DVR_PlaybackPids_t
         video_params.pid = set_pid.pid;
         video_params.codectype = _dvr_convert_stream_fmt(set_pid.format, DVR_FALSE);
         player->has_video = DVR_TRUE;
+        player->fake_mode = (video_params.pid == player->fake_pid)? 1 : 0;
         DVR_PB_INFO("start video pid[%d]fmt[%d]",video_params.pid, video_params.codectype);
         AmTsPlayer_setVideoParams(player->handle,  &video_params);
         AmTsPlayer_startVideoDecoding(player->handle);
@@ -2480,7 +2551,7 @@ int dvr_playback_audio_start(DVR_PlaybackHandle_t handle, am_tsplayer_audio_para
     DVR_PB_INFO("player is NULL");
     return DVR_FAILURE;
   }
-  _start_playback_thread(handle);
+  _start_playback_thread(handle, 0);
   //start audio and video
   DVR_PB_DEBUG("lock");
   dvr_mutex_lock(&player->lock);
@@ -2565,11 +2636,12 @@ int dvr_playback_video_start(DVR_PlaybackHandle_t handle, am_tsplayer_video_para
     return DVR_FAILURE;
   }
 
-  _start_playback_thread(handle);
+  _start_playback_thread(handle, (param->pid == player->fake_pid)? 1 : 0);
   //start audio and video
   DVR_PB_DEBUG("lock");
   dvr_mutex_lock(&player->lock);
   player->has_video = DVR_TRUE;
+  player->fake_mode = (param->pid == player->fake_pid)? 1 : 0;
   AmTsPlayer_setVideoParams(player->handle, param);
   AmTsPlayer_setVideoBlackOut(player->handle, 1);
   AmTsPlayer_startVideoDecoding(player->handle);
@@ -3083,6 +3155,7 @@ int dvr_playback_seek(DVR_PlaybackHandle_t handle, uint64_t segment_id, uint32_t
         AmTsPlayer_stopFast(player->handle);
       }
       player->has_video = DVR_TRUE;
+      player->fake_mode = (video_params.pid == player->fake_pid)? 1 : 0;
     } else {
       player->has_video = DVR_FALSE;
     }
@@ -3139,6 +3212,12 @@ int dvr_playback_seek(DVR_PlaybackHandle_t handle, uint64_t segment_id, uint32_t
     DVR_PLAYER_CHANGE_STATE(player,DVR_PLAYBACK_STATE_START);
   }
   player->last_send_time_id = UINT64_MAX;
+
+  player->con_spe.ply_dur = 0;
+  player->con_spe.ply_sta = 0;
+  player->con_spe.sys_dur = 0;
+  player->con_spe.sys_sta = 0;
+
   DVR_PB_DEBUG("unlock");
   dvr_mutex_unlock(&player->lock);
 
@@ -3658,6 +3737,7 @@ static int _dvr_playback_replay(DVR_PlaybackHandle_t handle, DVR_Bool_t trick) {
 
   if (VALID_PID(video_params.pid)) {
     player->has_video = DVR_TRUE;
+    player->fake_mode = (video_params.pid == player->fake_pid)? 1 : 0;
     if (trick == DVR_TRUE) {
       DVR_PB_INFO("settrick mode at replay");
       AmTsPlayer_setTrickMode(player->handle, AV_VIDEO_TRICK_MODE_PAUSE_NEXT);
@@ -3917,29 +3997,8 @@ static int _dvr_playback_get_status(DVR_PlaybackHandle_t handle,
   p_status->time_end = _dvr_get_end_time(handle);
   p_status->time_cur = _dvr_get_play_cur_time(handle, &segment_id);
 
-  if (player->control_speed_enable == 1) {
-    if (player->con_spe.ply_sta == 0) {
-          DVR_PB_INFO("player dur[%d] sta[%d] cur[%d] -----reinit",
-                        player->con_spe.ply_dur,
-                        player->con_spe.ply_sta,
-                        p_status->time_cur);
-          player->con_spe.ply_sta = p_status->time_cur;
-      } else if (player->speed == 1.0f && player->con_spe.ply_sta < p_status->time_cur) {
-        player->con_spe.ply_dur += (p_status->time_cur - player->con_spe.ply_sta);
-        DVR_PB_INFO("player dur[%d] sta[%d] cur[%d]",
-                      player->con_spe.ply_dur,
-                      player->con_spe.ply_sta,
-                      p_status->time_cur);
-        player->con_spe.ply_sta = p_status->time_cur;
-      }
-
-      if (player->con_spe.sys_sta == 0) {
-          player->con_spe.sys_sta = _dvr_time_getClock();
-      } else if (player->speed == 1.0f && player->con_spe.sys_sta > 0) {
-        player->con_spe.sys_dur += (_dvr_time_getClock() - player->con_spe.sys_sta);
-        player->con_spe.sys_sta = _dvr_time_getClock();
-      }
-  }
+  if (player->control_speed_enable == 1)
+    calc_speed_control(player, p_status->time_cur);
 
   if (player->last_send_time_id == UINT64_MAX) {
     player->last_send_time_id = player->cur_segment_id;

@@ -390,6 +390,10 @@ typedef struct
 
   /**< 1: system clock, 0: libdvr can determine index time source based on actual situation*/
   DVR_Bool_t                 control_speed_enable;
+  DVR_Bool_t                 control_speed_enable_user;
+  DVR_Bool_t                 control_speed_enable_last;
+
+  int                        fake_mode;
 } DVR_Playback_t;
 /**\endcond*/
 
