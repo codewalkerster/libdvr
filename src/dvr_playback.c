@@ -3904,6 +3904,9 @@ int dvr_playback_set_speed(DVR_PlaybackHandle_t handle, DVR_PlaybackSpeed_t spee
      player->cmd.speed.speed = speed.speed;
      player->speed = (float)speed.speed.speed/(float)100;
      player->fffb_play = DVR_FALSE;
+
+     _dvr_playback_replay(player, DVR_FALSE);
+
      DVR_PB_DEBUG("unlock ---\r\n");
      dvr_mutex_unlock(&player->lock);
      return DVR_SUCCESS;
@@ -3926,7 +3929,11 @@ int dvr_playback_set_speed(DVR_PlaybackHandle_t handle, DVR_PlaybackSpeed_t spee
       dvr_mutex_unlock(&player->lock);
       return DVR_SUCCESS;
     }
+  } else if (player->state == DVR_PLAYBACK_STATE_PAUSE) {
+    //not kernel speed, quit pause mode
+    _dvr_playback_replay(player, DVR_TRUE);
   }
+
   if (IS_KERNEL_SPEED(speed.speed.speed)) {
     //we think x1 and s2 s4 s8 x2is normal speed. is not ff fb.
     player->fffb_play = DVR_FALSE;
