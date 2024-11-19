@@ -2156,7 +2156,8 @@ static int _do_handle_pid_update(DVR_PlaybackHandle_t handle, DVR_PlaybackPids_t
   }
 
   if (type == 1 && VALID_PID(set_pid.pid) && player->cmd.state == DVR_PLAYBACK_STATE_START
-      && player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE) {
+      && player->play_flag&DVR_PLAYBACK_STARTED_PAUSEDLIVE
+      && player->state == DVR_PLAYBACK_STATE_PAUSE) {
     // Here we mute audio no matter it is displayable or not in starting phase of a playback.
     // Audio will be unmuted shortly on receiving first frame event.
     AmTsPlayer_setAudioMute(player->handle,1,1);
