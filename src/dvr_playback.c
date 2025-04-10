@@ -340,6 +340,9 @@ static int _dvr_convert_stream_fmt(int fmt, DVR_Bool_t is_audio) {
         case DVR_AUDIO_FORMAT_AC4:
           format = AV_AUDIO_CODEC_AC4;
           break;
+        case DVR_AUDIO_FORMAT_MPEGH:
+          format = AV_AUDIO_CODEC_MPEGH;
+          break;
     }
   }
   return format;
